@@ -1,0 +1,1785 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>妈妈，生日快乐 🎂</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#080512;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",serif;-webkit-tap-highlight-color:transparent}
+canvas#fx{position:fixed;inset:0;display:block;pointer-events:none}
+#stage{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.win{position:absolute;left:0;top:0;width:var(--ww,84px);border-radius:7px;overflow:hidden;will-change:transform,opacity;background:hsl(var(--h) 95% 94%);border:1.2px solid hsl(var(--h) 75% 60%);box-shadow:0 6px 18px rgba(0,0,0,.55),0 0 14px hsla(var(--h),90%,62%,.45);pointer-events:none}
+.win .bar{height:calc(var(--ww)*.155);display:flex;align-items:center;gap:4px;padding:0 5px;background:linear-gradient(hsl(var(--h) 92% 74%),hsl(var(--h) 82% 62%))}
+.win .dots{display:flex;gap:2.5px}
+.win .dots i{display:block;width:calc(var(--ww)*.052);height:calc(var(--ww)*.052);border-radius:50%;background:rgba(255,255,255,.9)}
+.win .ttl{flex:1;font-size:calc(var(--ww)*.088);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.win .msg{padding:calc(var(--ww)*.062) calc(var(--ww)*.05) calc(var(--ww)*.075);font-size:calc(var(--ww)*.113);font-weight:700;line-height:1.32;text-align:center;color:#2c1a45}
+.win .photo{width:100%;aspect-ratio:16/10;object-fit:cover;display:block;background:#fff2f8}
+.btn{padding:13px 40px;border-radius:999px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;font-size:16px;font-family:inherit;letter-spacing:2px;cursor:pointer;-webkit-appearance:none}
+.btn:active{transform:scale(.95)}
+.btn.small{padding:8px 16px;font-size:12px}
+.btn.export{background:linear-gradient(90deg,#ff7ab8,#b47bff);border-color:transparent;font-weight:700}
+.btn.danger{background:rgba(255,90,120,.2);border-color:rgba(255,90,120,.5);color:#ffb6c8}
+.btn.admin{font-size:13px;padding:10px 30px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.55)}
+#startPanel{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:radial-gradient(ellipse at center,#1a0f2b 0%,#080512 70%)}
+#startPanel.hide{opacity:0;pointer-events:none;transition:opacity .8s}
+.sp-title{font-size:clamp(28px,7vw,56px);font-weight:900;letter-spacing:4px;background:linear-gradient(90deg,#ffb6d5,#ffe08a,#a8e6ff,#d4b6ff,#ffb6d5);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 5s linear infinite}
+@keyframes shine{to{background-position:300% 0}}
+#progressWrap{width:min(320px,80vw);display:flex;flex-direction:column;gap:8px;align-items:center}
+#progressBar{width:100%;height:6px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden}
+#progressFill{height:100%;width:0;background:linear-gradient(90deg,#ff7ab8,#b47bff);transition:width .3s ease;border-radius:3px}
+#progressText{font-size:12px;color:rgba(255,255,255,.5);letter-spacing:1px}
+#enterBtn{opacity:.4;pointer-events:none;transition:opacity .4s}
+#enterBtn.ready{opacity:1;pointer-events:auto}
+.modal{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(4,2,10,.85);opacity:0;pointer-events:none;transition:opacity .3s}
+.modal.show{opacity:1;pointer-events:auto}
+.card{width:min(680px,94vw);max-height:88vh;overflow:auto;border-radius:16px;background:linear-gradient(160deg,#1c1230,#120b20);border:1px solid rgba(255,255,255,.12);padding:26px 24px;color:#fff}
+.card h2{margin-bottom:14px;font-size:20px;background:linear-gradient(90deg,#ffb6d5,#a8e6ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.card p.hint{margin-bottom:16px;font-size:12.5px;color:rgba(255,255,255,.5);line-height:1.7}
+.card label{display:block;font-size:12.5px;color:rgba(255,255,255,.6);margin:14px 0 6px}
+.card input,.card textarea{width:100%;padding:10px;border-radius:9px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;font-size:13.5px;font-family:inherit;outline:none}
+.card textarea{resize:vertical;min-height:60px;line-height:1.55}
+.card .row{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.card .row .btn{flex:1;padding:11px 0;font-size:14px;min-width:100px}
+.card .row .btn.primary{background:linear-gradient(90deg,#ff7ab8,#b47bff);border-color:transparent}
+.card .err{margin-top:14px;font-size:12.5px;color:#ff8fa8;min-height:16px}
+.tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,.1);flex-wrap:wrap}
+.tab{padding:9px 14px;font-size:12.5px;cursor:pointer;color:rgba(255,255,255,.5);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.active{color:#ffb6d5;border-bottom-color:#ff7ab8}
+.tabPanel{display:none}
+.tabPanel.active{display:block}
+.editItem{display:flex;gap:12px;align-items:flex-start;padding:14px 0;border-bottom:1px dashed rgba(255,255,255,.1)}
+.editItem .idx{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);margin-top:2px}
+.editItem .fields{flex:1;min-width:0}
+.editItem .thumb{flex:none;width:64px;height:64px;border-radius:10px;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative}
+.editItem .thumb img,.editItem .thumb video{width:100%;height:100%;object-fit:cover}
+.editItem .thumb .thumbEmpty{font-size:10px;color:rgba(255,255,255,.4);text-align:center;line-height:1.3}
+.musicBox{padding:14px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);margin-top:8px;font-size:13px;line-height:1.7}
+.musicBox .status{font-weight:700;margin-bottom:6px}
+.musicBox .status.ok{color:#7dffb0}
+.musicBox .status.empty{color:#ffb6c8}
+.musicBox .info{color:rgba(255,255,255,.55);font-size:11.5px}
+.toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%) translateY(20px);background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:13px;padding:10px 24px;border-radius:999px;opacity:0;pointer-events:none;transition:all .35s;z-index:200;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.scene{position:fixed;inset:0;z-index:25;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity 1s}
+.scene.show{opacity:1;pointer-events:auto}
+#envelopeWrap{position:absolute;width:min(400px,78vw);aspect-ratio:3/2;transition:transform 1.1s,opacity .8s}
+#envelopeWrap.hide{transform:scale(.1) rotateX(60deg);opacity:0}
+.env-body{position:absolute;inset:0;background:linear-gradient(150deg,#f7ead0,#dfc088);border-radius:6px;box-shadow:0 26px 70px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.55)}
+.env-flap{position:absolute;left:0;right:0;top:0;height:58%;background:linear-gradient(180deg,#f2e0bc,#d4b47e);clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top center;transition:transform .85s;z-index:3}
+#envelopeWrap.open .env-flap{transform:rotateX(178deg)}
+.env-seal{position:absolute;left:50%;top:48%;width:62px;height:62px;margin-left:-31px;margin-top:-31px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff6b8f,#b81f3f 60%,#7a0f27);display:flex;align-items:center;justify-content:center;font-size:22px;color:rgba(255,220,230,.9);z-index:5;transition:opacity .5s,transform .6s}
+#envelopeWrap.open .env-seal{opacity:0;transform:scale(.4) rotate(-30deg)}
+#envHint{position:absolute;left:50%;bottom:12%;transform:translateX(-50%);color:rgba(255,220,240,.7);font-size:13px;letter-spacing:3px;animation:hintPulse 2s infinite}
+@keyframes hintPulse{0%,100%{opacity:.35}50%{opacity:.95}}
+#paperWrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .6s;z-index:26}
+#paperWrap.show{opacity:1;pointer-events:auto}
+#paperStage{position:relative;width:min(720px,92vw);height:min(580px,80vh)}
+.paper{position:absolute;inset:0;border-radius:10px;overflow:hidden;transition:transform .75s cubic-bezier(.34,1.15,.5,1),opacity .55s}
+.paper[data-state="cur"]{transform:translateY(0) scale(1);opacity:1;z-index:3}
+.paper[data-state="prev"]{transform:translateY(-116%) scale(.85);opacity:0;z-index:1}
+.paper[data-state="next"]{transform:translateY(116%) scale(.85);opacity:0;z-index:1}
+.paper-scroll{background:linear-gradient(160deg,#fefaf0,#f1e2c0);padding:62px 68px;overflow-y:auto}
+.scroll-title{font-size:clamp(20px,3.2vw,30px);font-weight:900;letter-spacing:4px;text-align:center;color:#6b3f14;margin-bottom:22px}
+.scroll-body{font-size:clamp(14px,1.9vw,17px);line-height:2.05;color:#5a3a18;white-space:pre-wrap}
+.paper-torn{background:linear-gradient(150deg,#fffaef,#f8ecd2);padding:40px 38px;clip-path:polygon(0% 2%,5% 0%,10% 2%,15% 0%,20% 2%,25% 0%,30% 2%,35% 0%,40% 2%,45% 0%,50% 2%,55% 0%,60% 2%,65% 0%,70% 2%,75% 0%,80% 2%,85% 0%,90% 2%,95% 0%,100% 2%,100% 98%,95% 100%,90% 98%,85% 100%,80% 98%,75% 100%,70% 98%,65% 100%,60% 98%,55% 100%,50% 98%,45% 100%,40% 98%,35% 100%,30% 98%,25% 100%,20% 98%,15% 100%,10% 98%,5% 100%,0% 98%)}
+.torn-title{font-size:clamp(19px,3vw,28px);font-weight:900;letter-spacing:4px;text-align:center;color:#7a4a1c;margin-bottom:20px}
+.torn-grid{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:14px;height:calc(100% - 70px)}
+.torn-cell{background:rgba(160,110,50,.06);border:1.5px dashed rgba(160,110,50,.4);border-radius:9px;display:flex;align-items:center;justify-content:center;padding:12px;text-align:center;font-size:clamp(11.5px,1.5vw,14px);color:#5c3a1a;line-height:1.55;white-space:pre-wrap}
+.paper-big{background:linear-gradient(150deg,#fffbf2,#f7ebd3);padding:26px 30px 30px;display:flex;flex-direction:column;gap:14px}
+.big-title{font-size:clamp(18px,2.8vw,26px);font-weight:900;letter-spacing:3px;text-align:center;color:#6b3f14}
+.video-wrap{flex:1;min-height:0;background:#100a06;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative}
+.video-wrap video{width:100%;height:100%;object-fit:contain}
+.video-empty{color:rgba(255,220,180,.5);font-size:13px;text-align:center;padding:20px}
+.big-body{font-size:clamp(12.5px,1.7vw,15px);line-height:1.85;color:#5a3a18;text-align:center;white-space:pre-wrap}
+.video-continue{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);padding:8px 24px;border-radius:999px;background:rgba(255,180,220,.9);color:#4a1030;font-size:13px;font-weight:700;letter-spacing:2px;cursor:pointer;animation:hintPulse 1.6s infinite;display:none}
+.video-continue.show{display:block}
+#familyScene{position:fixed;inset:0;z-index:28;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 1s;perspective:1200px}
+#familyScene.show{opacity:1;pointer-events:auto}
+#familyWrap{position:relative;width:min(880px,94vw);max-height:88vh;display:flex;flex-direction:column;gap:18px;align-items:center}
+.family-title{font-size:clamp(20px,3.6vw,34px);font-weight:900;letter-spacing:4px;background:linear-gradient(90deg,#ffb6d5,#ffe08a,#a8e6ff,#d4b6ff,#ffb6d5);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 5s infinite;text-align:center}
+.family-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;overflow-y:auto;padding:6px}
+.family-card{background:linear-gradient(150deg,#fff8fb,#ffe8f0);border-radius:12px;padding:10px;box-shadow:0 10px 30px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:8px;position:relative;overflow:hidden}
+.family-card .fc-media{width:100%;aspect-ratio:1/1;border-radius:8px;overflow:hidden;background:#f0d8e4;display:flex;align-items:center;justify-content:center;color:#a07090;font-size:11px}
+.family-card .fc-media img,.family-card .fc-media video{width:100%;height:100%;object-fit:cover;display:block}
+.family-card .fc-text{font-size:12px;line-height:1.5;color:#7a1a44;text-align:center;font-weight:600;white-space:pre-wrap;min-height:2.4em}
+.family-card.family-card-text{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:22px 14px;min-height:150px}
+.family-card-text .fc-title{font-size:14px;color:#b05070;font-weight:800;letter-spacing:2px;text-align:center}
+.family-card-text .fc-text-big{font-size:14px;color:#7a1a44;font-weight:600;line-height:1.7;text-align:center;white-space:pre-wrap}
+.family-hint{font-size:12px;color:rgba(255,220,240,.7);animation:hintPulse 2s infinite;letter-spacing:2px}
+#wheelScene{position:fixed;inset:0;z-index:27;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .9s}
+#wheelScene.show{opacity:1;pointer-events:auto}
+#wheelStage{position:relative;width:min(560px,88vw);height:min(520px,74vh);transform-style:preserve-3d;transition:transform .9s,opacity .7s}
+#wheelStage.hide{transform:scale(1.9);opacity:0}
+#wheelContainer{position:absolute;inset:0}
+.wheel-card{position:absolute;left:0;right:0;top:50%;height:130px;margin-top:-65px;display:flex;align-items:center;justify-content:center;padding:0 30px;text-align:center;font-size:clamp(16px,2.4vw,22px);font-weight:700;letter-spacing:2.5px;color:#fff5fa;border-radius:14px;background:linear-gradient(150deg,rgba(255,180,220,.14),rgba(180,140,255,.10));border:1px solid rgba(255,180,220,.28);text-shadow:0 0 18px rgba(255,150,200,.7);backdrop-filter:blur(6px)}
+.wheel-card.is-current{background:linear-gradient(150deg,rgba(255,190,225,.28),rgba(190,150,255,.20));border-color:rgba(255,190,225,.62)}
+#wheelRightNav{position:absolute;right:-50px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px}
+#wheelRightNav .wt{width:6px;height:22px;border-radius:3px;background:rgba(255,255,255,.18);transition:all .35s}
+#wheelRightNav .wt.active{height:46px;background:linear-gradient(180deg,#ffb6d5,#b47bff)}
+#wheelNum{position:absolute;right:-50px;bottom:-40px;font-size:12px;color:rgba(255,220,240,.7)}
+#wheelHint{position:absolute;left:50%;bottom:-50px;transform:translateX(-50%);font-size:12px;color:rgba(255,220,240,.68);animation:hintPulse 2s infinite}
+#wheelTitle{position:absolute;left:50%;top:-60px;transform:translateX(-50%);font-size:clamp(15px,2.4vw,20px);font-weight:800;letter-spacing:4px;color:rgba(255,220,240,.9)}
+#blessingScene{position:fixed;inset:0;z-index:29;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 1s}
+#blessingScene.show{opacity:1;pointer-events:auto}
+#blessingWrap{width:min(760px,92vw);display:flex;flex-direction:column;gap:22px;align-items:center;transition:transform .9s,opacity .7s}
+#blessingWrap.hide{transform:scale(1.5);opacity:0}
+.blessing-title{font-size:clamp(22px,4.2vw,40px);font-weight:900;letter-spacing:5px;text-align:center;background:linear-gradient(90deg,#ffb6d5,#ffe08a,#a8e6ff,#d4b6ff,#ffb6d5);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 5s infinite}
+.blessing-video-wrap{width:100%;aspect-ratio:16/9;background:#100a06;border-radius:20px;overflow:hidden;position:relative;box-shadow:0 0 0 6px rgba(255,255,255,.55),0 0 0 8px rgba(220,120,180,.55),0 20px 60px rgba(150,30,90,.55)}
+.blessing-video-wrap video{width:100%;height:100%;object-fit:contain}
+.blessing-video-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,200,220,.55);font-size:14px;text-align:center;padding:24px}
+.blessing-hint{font-size:13px;color:rgba(255,220,240,.7);animation:hintPulse 2s infinite}
+#cakeScene{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 1s}
+#cakeScene.show{opacity:1;pointer-events:auto}
+#cakeWrap{position:relative;width:min(600px,92vw);transition:transform 1s,opacity .8s;animation:cakeFloat 5.5s infinite}
+@keyframes cakeFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+#cakeWrap.hide{transform:scale(1.75) translateY(90px);opacity:0;animation:none}
+.cake-candles{display:flex;justify-content:center;gap:22px;margin-bottom:-6px;position:relative;z-index:5}
+.candle{width:10px;height:52px;background:linear-gradient(180deg,#fff,#ffe1ec);border-radius:4px;position:relative}
+.candle::before{content:'';position:absolute;left:50%;top:-18px;transform:translateX(-50%);width:10px;height:16px;background:radial-gradient(circle at 50% 60%,#fff8b0,#ff9a3c 65%,#ff5a00);border-radius:50% 50% 40% 40%;filter:drop-shadow(0 0 12px rgba(255,180,50,.95))}
+.cake-frosting{height:32px;background:linear-gradient(180deg,#fff8fb,#ffd5e3);border-radius:40px 40px 0 0;position:relative;z-index:4}
+.cake-body{background:linear-gradient(160deg,#f8d7e3,#e59cb8);border-radius:0 0 26px 26px;padding:32px 28px 30px;box-shadow:0 30px 90px rgba(0,0,0,.65);position:relative}
+.cake-title{text-align:center;font-size:clamp(15px,2.4vw,20px);font-weight:900;color:#7a1a44;margin-bottom:16px;line-height:1.6;white-space:pre-wrap}
+.cake-video-wrap{width:100%;aspect-ratio:16/9;background:#1a0810;border-radius:16px;overflow:hidden;position:relative;box-shadow:0 0 0 5px rgba(255,255,255,.6),0 0 0 7px rgba(220,120,160,.55)}
+.cake-video-wrap video{width:100%;height:100%;object-fit:contain}
+.cake-video-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,200,220,.5);font-size:13px;padding:20px}
+.cake-plate{height:26px;margin:0 -22px;margin-top:-14px;background:linear-gradient(180deg,#fff8fc,#e8b8cd);border-radius:50%}
+#cakeHint{position:absolute;left:50%;bottom:5%;transform:translateX(-50%);font-size:12.5px;color:rgba(255,220,240,.72);animation:hintPulse 2s infinite}
+#final{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center;opacity:0;pointer-events:none;transition:opacity 1.4s;z-index:40}
+#final.show{opacity:1;pointer-events:auto}
+#final .f1{font-size:clamp(30px,7.5vw,68px);font-weight:900;letter-spacing:3px;background:linear-gradient(90deg,#ff8fc7,#ffd36e,#8fe3ff,#b48cff,#ff8fc7);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 5s infinite}
+#final .f2{font-size:clamp(15px,3.2vw,23px);color:#ffd9ec;letter-spacing:2px}
+#final .f3{font-size:clamp(12px,2.5vw,17px);color:rgba(255,255,255,.6)}
+#heartBurst{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(0);z-index:45;pointer-events:none;opacity:0;transition:transform 1s cubic-bezier(.34,1.56,.64,1),opacity .5s;filter:drop-shadow(0 0 46px rgba(255,80,140,.95))}
+#heartBurst.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#heartBurst.burst{transform:translate(-50%,-50%) scale(1.65);opacity:0}
+.heart-shape{width:160px;height:144px;position:relative;animation:heartBeat 1.1s infinite}
+@keyframes heartBeat{0%,100%{transform:scale(1)}30%{transform:scale(1.09)}55%{transform:scale(.98)}}
+.heart-shape::before,.heart-shape::after{content:'';width:80px;height:128px;position:absolute;left:80px;top:0;background:linear-gradient(160deg,#ff7ba6,#ff3d7f 45%,#d81b60);border-radius:80px 80px 0 0;transform:rotate(-45deg);transform-origin:0 100%}
+.heart-shape::after{left:0;transform:rotate(45deg);transform-origin:100% 100%}
+#flashOverlay{position:fixed;inset:0;z-index:44;pointer-events:none;background:radial-gradient(circle at 50% 50%,rgba(255,200,230,.85),rgba(255,120,180,.4) 30%,transparent 60%);opacity:0}
+#flashOverlay.flash{animation:flashAnim .85s}
+@keyframes flashAnim{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
+/* ===== 竖屏视频自适应（手机拍竖屏视频不再缩成一小条） ===== */
+.blessing-video-wrap.portrait,.cake-video-wrap.portrait{width:fit-content;max-width:100%;margin:0 auto;aspect-ratio:9/16}
+.blessing-video-wrap.portrait{height:min(64vh,112vw)}
+.cake-video-wrap.portrait{height:min(42vh,76vw)}
+.video-wrap.portrait{background:transparent;border-radius:12px}
+/* ===== 视频：不自动播放，点一下才播；不循环；盒子居中 ===== */
+.cvbox{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:inherit;background:#000}
+.cvbox video{width:100%;height:100%;object-fit:contain;display:block;background:#000}
+.cvplay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:62px;height:62px;border-radius:50%;background:rgba(255,150,200,.92);color:#4a1030;display:flex;align-items:center;justify-content:center;font-size:21px;padding-left:5px;box-shadow:0 10px 30px rgba(0,0,0,.55);cursor:pointer;animation:hintPulse 1.8s infinite;z-index:3}
+.cvbox.playing .cvplay{opacity:0;pointer-events:none;animation:none;transition:opacity .35s}
+.cvtip{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);font-size:11px;color:rgba(255,255,255,.8);background:rgba(0,0,0,.42);padding:2px 10px;border-radius:999px;white-space:nowrap;z-index:3}
+.cvbox.playing .cvtip{opacity:0;transition:opacity .35s}
+.video-wrap.portrait .cvbox{width:fit-content;max-width:100%;height:100%;aspect-ratio:9/16;margin:0 auto;border-radius:12px}
+.family-card .cvplay,.album-item .cvplay{width:36px;height:36px;font-size:13px;padding-left:3px}
+.family-card .cvtip,.album-item .cvtip{display:none}
+/* ===== 每一屏下方的小字提示 ===== */
+.hint-bottom{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);font-size:12.5px;color:rgba(255,220,240,.78);letter-spacing:1.5px;animation:hintPulse 2s infinite;text-align:center;z-index:6;white-space:nowrap}
+@media (max-width:700px){.hint-bottom{font-size:11.5px;white-space:normal;width:92vw;line-height:1.65}}
+/* ===== 相册：全部照片 / 视频 ===== */
+#albumScene{position:fixed;inset:0;z-index:26;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 1s}
+#albumScene.show{opacity:1;pointer-events:auto}
+#albumWrap{position:relative;width:min(880px,94vw);max-height:88vh;display:flex;flex-direction:column;gap:14px;align-items:center}
+.album-title{font-size:clamp(19px,3.4vw,30px);font-weight:900;letter-spacing:4px;background:linear-gradient(90deg,#ffb6d5,#ffe08a,#a8e6ff,#d4b6ff,#ffb6d5);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 5s infinite;text-align:center}
+.album-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;overflow-y:auto;padding:6px;-webkit-overflow-scrolling:touch}
+.album-item{position:relative;border-radius:10px;overflow:hidden;background:#120b20;aspect-ratio:9/16;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.5)}
+.album-item img,.album-item video{width:100%;height:100%;object-fit:cover;display:block}
+.album-item .tag{position:absolute;left:6px;bottom:6px;font-size:10px;color:#fff;background:rgba(0,0,0,.5);padding:2px 8px;border-radius:999px}
+.album-empty{grid-column:1/-1;color:rgba(255,220,240,.6);font-size:13px;text-align:center;padding:40px 16px;line-height:1.9}
+#albumView{position:fixed;inset:0;z-index:60;background:rgba(4,2,10,.95);display:none;align-items:center;justify-content:center;padding:16px}
+#albumView.show{display:flex}
+#albumView img,#albumView video{max-width:96vw;max-height:86vh;object-fit:contain;border-radius:8px;background:#000}
+#albumViewClose{position:fixed;right:20px;top:16px;color:#fff;font-size:26px;line-height:1;cursor:pointer;padding:8px}
+@media (max-width:700px){.family-grid{grid-template-columns:repeat(2,1fr)}.album-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--MAMA-INJECT-START-->
+<script>window.__MAMA_PATCH__={"letter":{"p3Video":"videos/1-letter-page3.mp4"},"blessing":{"video":"videos/2-blessing.mp4"},"cake":{"video":"videos/3-cake.mp4"},"data":{"photos":["photos/3722950a2c6312f9aa31bf83ff9489b8.jpg","photos/535dff53f7d1f4518ab33934f7dfb74e.jpg","photos/6a366ebe3489f4949e671099cd65b0e7.jpg","photos/6b4d6e1abfa14bfa8ed507890458eabe.jpg","photos/6e233a56712e634b3d21e788881f7474.jpg","photos/724f0cde5e48693cd657384bd57eedb7.jpg","photos/7f8a38413dc9845aa3c687a0417c6e57.jpg","photos/861a3e6e3cfb10e24a88c053248055ca.jpg","photos/a09279d07dd2c960713929af22dcf2ba.jpg","photos/a3d8b8d33f36b5111862660625e33844.jpg","photos/aa57bcd2db67d4b1a3b9a17b1ed63815.jpg","photos/aaa05fb1649038d70d50bad3db2188a1.jpg","photos/b9b43598778114d8d96cd100f024c518.jpg","photos/c4e130aa4c16d3bd0dcbf6d7a9123c01.jpg","photos/c79df74799499e28dff2853c27c959c2.jpg","photos/da104b8b9b3072605c4fbd580ada32a0.jpg","photos/df3809ec9f99604f1a79b57cba2e685b.jpg"]}};</script>
+<script src="photos/album.js"></script>
+<!--MAMA-INJECT-END-->
+</head>
+<body>
+
+<canvas id="fx"></canvas>
+<div id="stage"></div>
+<audio id="bgm" loop preload="auto" style="display:none"></audio>
+
+<div id="final">
+  <div class="f1" id="f1">妈妈，生日快乐！</div>
+  <div class="f2" id="f2">愿您岁岁平安，年年欢喜 ❤️</div>
+  <div class="f3" id="f3">制作人：sunmou</div>
+  <button class="btn" id="againBtn" type="button">再看一次</button>
+  <div class="hint-bottom">点击「再看一次」重新播放</div>
+</div>
+
+<div class="scene" id="letterScene">
+  <div id="envelopeWrap">
+    <div class="env-body"></div><div class="env-flap"></div>
+    <div class="env-seal">❤</div><div id="envHint">点击打开信封</div>
+  </div>
+  <div id="paperWrap"><div id="paperStage">
+    <div class="paper paper-scroll" data-state="cur">
+      <h2 class="scroll-title" id="p1Title">感谢妈妈的信</h2>
+      <div class="scroll-body" id="p1Body"></div>
+    </div>
+    <div class="paper paper-torn" data-state="next">
+      <h2 class="torn-title" id="p2Title">最美的妈妈</h2>
+      <div class="torn-grid" id="p2Grid"></div>
+    </div>
+    <div class="paper paper-big" data-state="next">
+      <h2 class="big-title" id="p3Title">妈妈，我想对您说</h2>
+      <div class="video-wrap" id="p3VideoWrap">
+        <div class="video-empty">（可在后台添加视频）</div>
+        <div class="video-continue" id="p3Continue">点击继续 →</div>
+      </div>
+      <div class="big-body" id="p3Body"></div>
+    </div>
+    <div id="pageNum" style="position:absolute;right:-46px;bottom:-38px;font-size:12px;color:rgba(255,220,240,.7)">1 / 3</div>
+  </div></div>
+  <div class="hint-bottom" id="letterHint">点击信封打开</div>
+</div>
+
+<div class="scene" id="familyScene">
+  <div id="familyWrap">
+    <div class="family-title">家人祝福</div>
+    <div class="family-grid" id="familyGrid"></div>
+    <div class="family-hint">↑ 向上滑动 / 滚轮继续　·　轻触视频播放</div>
+  </div>
+</div>
+
+<div class="scene" id="albumScene"><div id="albumWrap">
+  <div class="album-title">全部照片 · 视频</div>
+  <div class="album-grid" id="albumGrid"></div>
+  <div class="family-hint">轻触看大图　·　↑ 向上滑动 / 滚轮继续</div>
+</div></div>
+<div id="albumView"></div>
+
+<div class="scene" id="wheelScene"><div id="wheelStage">
+  <div id="wheelTitle">还有几句话，想对您说</div>
+  <div id="wheelContainer"></div>
+  <div id="wheelRightNav"></div>
+  <div id="wheelNum">1 / 7</div>
+  <div id="wheelHint">↑ 向上滑动</div>
+</div></div>
+
+<div class="scene" id="blessingScene"><div id="blessingWrap">
+  <div class="blessing-title">祝福妈妈生日快乐</div>
+  <div class="blessing-video-wrap" id="blessingVideoWrap">
+    <div class="blessing-video-empty">（可在后台添加祝福视频）</div>
+  </div>
+  <div class="blessing-hint" id="blessingHint">轻触视频播放　·　轻触空白处继续</div>
+</div></div>
+
+<div class="scene" id="cakeScene"><div id="cakeWrap">
+  <div class="cake-candles">
+    <div class="candle" style="height:46px"></div><div class="candle" style="height:58px"></div>
+    <div class="candle" style="height:42px"></div><div class="candle" style="height:54px"></div>
+    <div class="candle" style="height:44px"></div>
+  </div>
+  <div class="cake-frosting"></div>
+  <div class="cake-body">
+    <div class="cake-title" id="cakeTitle"></div>
+    <div class="cake-video-wrap" id="cakeVideoWrap"><div class="cake-video-empty">（可在后台添加视频）</div></div>
+  </div>
+  <div class="cake-plate"></div>
+</div><div id="cakeHint">轻触视频播放　·　轻触空白处继续</div></div>
+
+<div id="flashOverlay"></div>
+<div id="heartBurst"><div class="heart-shape"></div></div>
+
+<div id="startPanel">
+  <div class="sp-title" id="spTitle">妈妈，生日快乐</div>
+  <div id="progressWrap">
+    <div id="progressBar"><div id="progressFill"></div></div>
+    <div id="progressText">准备中…</div>
+  </div>
+  <button class="btn" id="enterBtn" type="button">进 入</button>
+  <button class="btn admin" id="adminBtn" type="button">管 理 员</button>
+</div>
+
+<div class="modal" id="loginModal"><div class="card">
+  <h2>管理员登录</h2>
+  <label>账号</label><input type="text" id="loginUser" autocomplete="off">
+  <label>密码</label><input type="password" id="loginPass" autocomplete="off">
+  <div class="err" id="loginErr"></div>
+  <div class="row">
+    <button class="btn" id="loginCancel">取消</button>
+    <button class="btn primary" id="loginOk">登 录</button>
+  </div>
+</div></div>
+
+<div class="modal" id="editModal"><div class="card">
+  <h2>编辑内容</h2>
+  <div class="tabs">
+    <div class="tab" data-tab="music">🎵 音乐</div>
+    <div class="tab active" data-tab="popup">弹窗</div>
+    <div class="tab" data-tab="letter">信件</div>
+    <div class="tab" data-tab="family">家人祝福</div>
+    <div class="tab" data-tab="wheel">轮盘</div>
+    <div class="tab" data-tab="blessing">祝福视频</div>
+    <div class="tab" data-tab="cake">蛋糕</div>
+    <div class="tab" data-tab="videos">📹 视频清单</div>
+    <div class="tab" data-tab="finalpage">🏁 封面/结尾</div>
+  </div>
+
+  <div class="tabPanel" data-panel="music">
+    <p class="hint">
+      把《真的爱你》MP3 <b>直接嵌入网页</b>，之后导出或分享到任何设备都能直接播放，不依赖外部文件。<br>
+      支持 mp3 / m4a / mp4 / ogg 等格式。<br>
+      👉 也可以把文件放进旁边的 <b>music 文件夹</b>，命名成 <b>真的爱你.mp3</b>，网页打开时自动播放，不用嵌入。<br>
+      没有 mp3 时，网页会用内置的《真的爱你》旋律合成音兜底，不会静音。
+    </p>
+    <label>当前嵌入状态</label>
+    <div class="musicBox" id="musicStatusBox">
+      <div class="status empty">未嵌入音乐</div>
+      <div class="info">将使用本地文件检测或合成音乐兜底</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+      <button class="btn small" id="bgmPickBtn">📁 选择 MP3 并嵌入</button>
+      <button class="btn small" id="bgmPlayBtn">▶ 试听</button>
+      <button class="btn small danger" id="bgmClearBtn">🗑 清除嵌入</button>
+    </div>
+    <p class="hint" style="margin-top:14px">
+      ⚠ 温馨提示：一首完整的《真的爱你》约 4-6 MB，嵌入后会保存在浏览器本地（IndexedDB），
+      导出网页时会写进 HTML 文件内部。文件会比较大，但完全自包含、离线可播放。
+    </p>
+  </div>
+
+  <div class="tabPanel active" data-panel="popup"><div id="editList"></div>
+    <div class="row"><button class="btn" id="editReset">恢复默认</button><button class="btn" id="editCancel">取消</button><button class="btn primary" id="editSave">保存</button></div>
+  </div>
+  <div class="tabPanel" data-panel="letter">
+    <label>第 1 页标题</label><input type="text" id="ltP1Title">
+    <label>第 1 页正文</label><textarea id="ltP1Body" rows="6"></textarea>
+    <label>第 2 页标题</label><input type="text" id="ltP2Title">
+    <label>第 2 页六格（每行一个）</label><textarea id="ltP2Cells" rows="7"></textarea>
+    <label>第 3 页标题</label><input type="text" id="ltP3Title">
+    <label>第 3 页视频</label><input type="url" id="ltP3Video" placeholder="可留空">
+    <div style="display:flex;gap:6px;margin-top:8px"><button class="btn small" id="ltP3VideoPick">从相册导入视频</button><button class="btn small danger" id="ltP3VideoClear">清除</button></div>
+    <label>第 3 页底部文字</label><textarea id="ltP3Body" rows="3"></textarea>
+    <div class="row"><button class="btn" id="ltReset">恢复默认</button><button class="btn" id="ltCancel">取消</button><button class="btn primary" id="ltSave">保存</button></div>
+  </div>
+  <div class="tabPanel" data-panel="family">
+    <p class="hint">前 3 位（老公、女儿、儿子）可插入视频/照片，后 3 位只显示祝福语</p>
+    <div id="familyEditList"></div>
+    <div class="row"><button class="btn" id="fmReset">恢复默认</button><button class="btn" id="fmCancel">取消</button><button class="btn primary" id="fmSave">保存</button></div>
+  </div>
+  <div class="tabPanel" data-panel="wheel">
+    <label>标题</label><input type="text" id="whTitle">
+    <label>七条文案</label><textarea id="whBody" rows="9"></textarea>
+    <div class="row"><button class="btn" id="whReset">恢复默认</button><button class="btn" id="whCancel">取消</button><button class="btn primary" id="whSave">保存</button></div>
+  </div>
+  <div class="tabPanel" data-panel="blessing">
+    <label>视频</label><input type="url" id="blVideo" placeholder="可留空">
+    <div style="display:flex;gap:6px;margin-top:8px"><button class="btn small" id="blVideoPick">从相册导入视频</button><button class="btn small danger" id="blVideoClear">清除</button></div>
+    <div class="row"><button class="btn" id="blReset">恢复默认</button><button class="btn" id="blCancel">取消</button><button class="btn primary" id="blSave">保存</button></div>
+  </div>
+  <div class="tabPanel" data-panel="cake">
+    <label>蛋糕标题</label><textarea id="ckTitle" rows="2"></textarea>
+    <label>视频</label><input type="url" id="ckVideo" placeholder="可留空">
+    <div style="display:flex;gap:6px;margin-top:8px"><button class="btn small" id="ckVideoPick">从相册导入视频</button><button class="btn small danger" id="ckVideoClear">清除</button></div>
+    <div class="row"><button class="btn" id="ckReset">恢复默认</button><button class="btn" id="ckCancel">取消</button><button class="btn primary" id="ckSave">保存</button></div>
+  </div>
+  <div class="tabPanel" data-panel="videos">
+    <p class="hint">每一段视频的<b>位置</b>、<b>简介</b>、<b>当前文件</b>都列在下面，可以直接更换或清除。<br>
+      同一段视频/照片已经用在别处时，不会被重复插入。</p>
+    <div id="videoList"></div>
+  </div>
+  <div class="tabPanel" data-panel="finalpage">
+    <p class="hint">封面和结尾页上的每一行字都能改。</p>
+    <label>封面大标题</label><input type="text" id="fnCover">
+    <label>结尾第一行（大字）</label><input type="text" id="fnF1">
+    <label>结尾第二行</label><input type="text" id="fnF2">
+    <label>结尾第三行（制作人）</label><input type="text" id="fnF3">
+    <div class="row"><button class="btn" id="fnReset">恢复默认</button><button class="btn" id="fnCancel">取消</button><button class="btn primary" id="fnSave">保存</button></div>
+  </div>
+  <div style="margin-top:26px;padding-top:20px;border-top:1px solid rgba(255,255,255,.12)">
+    <div style="font-size:13px;color:rgba(255,255,255,.7);margin-bottom:6px">💾 保存到网站文件夹（原地更新，不新建网站）</div>
+    <div style="font-size:11.5px;color:rgba(255,255,255,.4);line-height:1.7;margin-bottom:12px">
+      直接改写这个网站文件夹里的 <b>index.html</b>，媒体按固定位置写进
+      <b>videos/</b>、<b>photos/</b>、<b>music/</b>。<br>
+      手机和电脑打开的是同一个文件夹，拷走 / 发微信都能看。
+    </div>
+    <div class="musicBox" id="siteFolderBox"><div class="status empty">还没绑定网站文件夹</div></div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn export" id="exportFolderBtn">💾 保存到网站文件夹</button>
+      <button class="btn" id="bindSiteBtn">📁 更换文件夹</button>
+    </div>
+  </div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+window.addEventListener('error',e=>console.error('[页面错误]',e.message,e.filename,e.lineno));
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const stage=$('stage'),cvs=$('fx'),ctx=cvs.getContext('2d');
+const bgm=$('bgm');
+
+const ADMIN_USER='sunyuanxi123',ADMIN_PASS='sunyuanxi123';
+const K={data:'mama_data_v1',letter:'mama_letter_v1',family:'mama_family_v1',wheel:'mama_wheel_v1',blessing:'mama_blessing_v1',cake:'mama_cake_v1',final:'mama_final_v1'};
+const INJECTED=window.__MAMA_DATA__||null;
+const MEDIA_MAP=window.__MAMA_MEDIA__||{};
+/* 导出时注入的音乐 base64 */
+const INJECTED_BGM=window.__MAMA_BGM__||null;
+/* 相册清单：photos/album.js 生成，或导出时注入 */
+const INJECTED_ALBUM=(window.__MAMA_ALBUM__||[]).filter(x=>x&&x.src);
+/* 音乐清单：music 文件夹里扫描出来的文件（album.js / 导出时生成） */
+const INJECTED_MUSIC=(window.__MAMA_MUSIC__||[]).filter(Boolean);
+
+const DEFAULT_MESSAGES=['妈妈，生日快乐！','妈妈，您辛苦啦','愿妈妈永远健康','妈妈，我爱您！','愿您天天开心','愿岁月温柔待您','妈妈，笑口常开','愿您青春永驻','妈妈，谢谢您','愿您平安喜乐','妈妈，您最美','愿您无病无忧','妈妈，多吃点好的','愿您心想事成','妈妈，别太累了','愿您每天好心情','您是世上最好的妈妈','愿您健康长寿','妈妈，想抱抱您','愿您被温柔以待','您值得所有美好','愿您余生都幸福','永远爱您，妈妈','您是我的超人','愿您皱纹里都是笑','妈妈，好好爱自己','愿您岁月静好','我会一直在您身边','愿妈妈福如东海','妈妈，要一直开心呀'];
+const DEFAULT_TITLES=['祝福.txt','妈妈.exe','生日.doc','爱您.jpg','心愿.bat','妈妈.zip','礼物.pkg'];
+
+const DEFAULT_LETTER={
+  p1Title:'感谢妈妈的信',
+  p1Body:'亲爱的妈妈：\n　谢谢您，把我带到这个世界上。\n　谢谢您，在每一个我跌倒的夜晚，轻轻把我扶起。\n　谢谢您，把最好吃的菜都夹到我碗里。\n　谢谢您，明明很累了，还笑着说"妈不累"。\n\n　您的白发是岁月给的勋章；您的皱纹是我长大的代价。\n　妈妈，我不求您永远年轻，只求您永远健康、快乐。\n　往后的日子，换我来照顾您。\n\n—— 永远爱您的孩子',
+  p2Title:'最美的妈妈',
+  p2Cells:['您的笑\n是我见过最美的风景','您做的饭\n是全世界最好的味道','您的怀抱\n是我最安心的港湾','您的唠叨\n是我最想念的声音','您的手\n牵着我走过所有风雨','妈妈\n您永远是世界上最美的女人'],
+  p3Title:'妈妈，我想对您说',
+  p3Video:'',
+  p3Body:'愿时光慢些走，愿您被这世界温柔以待。\n妈妈，生日快乐！'
+};
+
+const DEFAULT_FAMILY={
+  cards:[
+    {title:'老公',photo:'',text:'老婆，这些年你辛苦了。\n余生我陪你一起走。'},
+    {title:'女儿',photo:'',text:'妈妈，生日快乐！\n我永远爱您。'},
+    {title:'儿子',photo:'',text:'妈妈，祝您身体健康，\n天天开心！'},
+    {title:'爸爸',photo:'',text:'福如东海，寿比南山。'},
+    {title:'爷爷奶奶',photo:'',text:'祝儿媳健康长寿，幸福安康。'},
+    {title:'外公外婆',photo:'',text:'祝女儿生日快乐，岁岁平安。'}
+  ]
+};
+const DEFAULT_WHEEL={title:'还有几句话，想对您说',lines:['妈妈，您是我心里最柔软的地方','您把最好的都给了我，却从不言说','您的爱，是我一生的底气','愿您眼里有光，心中有暖','愿您被这世界温柔以待','您永远是我最想守护的人','妈妈，我爱您，永远永远']};
+const DEFAULT_BLESSING={title:'祝福妈妈生日快乐',video:''};
+const DEFAULT_CAKE={title:'是因为得回去，所以没办法和你在这庆祝，只能以这种方式',video:''};
+
+/* 读取优先级：本机浏览器保存的（管理员改过的） > 导出/部署时注入的内容 > 内置默认（可被 __MAMA_PATCH__ 补充） */
+const PATCH=window.__MAMA_PATCH__||null;
+function patchOf(key,obj){
+  const p=PATCH&&PATCH[key];
+  if(!p)return obj;
+  Object.keys(p).forEach(k=>{const v=obj[k];if(v===undefined||v===null||v===''||(Array.isArray(v)&&v.length===0))obj[k]=p[k]});
+  return obj;
+}
+function load(key,def){
+  try{const r=localStorage.getItem(K[key]);if(r){const d=JSON.parse(r);if(d)return patchOf(key,d)}}catch(e){}
+  if(INJECTED&&INJECTED[key])return patchOf(key,JSON.parse(JSON.stringify(INJECTED[key])));
+  return patchOf(key,JSON.parse(JSON.stringify(def)));
+}
+let data=load('data',{messages:DEFAULT_MESSAGES,photos:[]});
+let letter=load('letter',DEFAULT_LETTER);
+let family=load('family',DEFAULT_FAMILY);
+let wheel=load('wheel',DEFAULT_WHEEL);
+let blessing=load('blessing',DEFAULT_BLESSING);
+let cake=load('cake',DEFAULT_CAKE);
+
+if(family.cards){
+  const titles=['老公','女儿','儿子','爸爸','爷爷奶奶','外公外婆'];
+  family.cards.forEach((c,i)=>{if(!c.title)c.title=titles[i]||'家人'});
+}
+
+function curMessages(){return data&&data.messages&&data.messages.length?data.messages:DEFAULT_MESSAGES.slice()}
+function curPhotos(){return data&&data.photos&&data.photos.length?data.photos:new Array(DEFAULT_MESSAGES.length).fill(null)}
+
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clamp=(v,a,b)=>v<a?a:(v>b?b:v);
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const mediaKind=src=>{
+  if(!src)return'none';
+  if(src.indexOf('data:video/')===0)return'video';
+  if(src.indexOf('data:image/')===0)return'image';
+  if(/\.(mp4|webm|mov|m4v|ogv)(\?|$)/i.test(src))return'video';
+  if(/\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?|$)/i.test(src))return'image';
+  if(/^https?:/.test(src))return'video';
+  return'image';
+};
+const mediaSrc=src=>{if(!src)return'';if(MEDIA_MAP&&MEDIA_MAP[src])return MEDIA_MAP[src];return src};
+
+let toastTimer=0;
+const toast=msg=>{const el=$('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3200)};
+
+/* ===================================================
+   ========== 音乐：IndexedDB 存储嵌入 + 播放 ========
+   =================================================== */
+const BGM_DB='mama_bgm_db',BGM_STORE='bgm_store';
+let bgmDataUrl=null;           /* 内存中的音乐 base64 */
+let musicStarted=false,musicReady=false,currentMusicIdx=0;
+const MUSIC_SOURCES=['music/真的爱你.mp3','music/真的爱你.m4a','music/真的爱你.ogg','music/真的爱你.wav','music/真的爱你.mp4','music/zhendeaini.mp3','music/zhendeaini.m4a','music/zhendeaini.ogg','music/zhendeaini.wav','music/music.mp3','music/bgm.mp3','真的爱你.mp3','真的爱你.m4a','真的爱你.mp4','真的爱你.ogg','真的爱你.wav','zhendeaini.mp3'];
+/* music 文件夹里扫描到的音乐优先播放 */
+INJECTED_MUSIC.slice().reverse().forEach(u=>{if(MUSIC_SOURCES.indexOf(u)<0)MUSIC_SOURCES.unshift(u)});
+
+function openBGMDb(){
+  return new Promise((res,rej)=>{
+    const req=indexedDB.open(BGM_DB,1);
+    req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(BGM_STORE))db.createObjectStore(BGM_STORE)};
+    req.onsuccess=()=>res(req.result);
+    req.onerror=()=>rej(req.error);
+  });
+}
+async function saveBGMToDB(dataUrl,name){
+  const db=await openBGMDb();
+  return new Promise((res,rej)=>{
+    const tx=db.transaction(BGM_STORE,'readwrite');
+    tx.objectStore(BGM_STORE).put({data:dataUrl,name,time:Date.now()},'bgm');
+    tx.oncomplete=()=>res();
+    tx.onerror=()=>rej(tx.error);
+  });
+}
+async function loadBGMFromDB(){
+  try{
+    const db=await openBGMDb();
+    return new Promise(res=>{
+      const tx=db.transaction(BGM_STORE,'readonly');
+      const req=tx.objectStore(BGM_STORE).get('bgm');
+      req.onsuccess=()=>res(req.result||null);
+      req.onerror=()=>res(null);
+    });
+  }catch(e){return null}
+}
+async function clearBGMFromDB(){
+  try{
+    const db=await openBGMDb();
+    return new Promise(res=>{
+      const tx=db.transaction(BGM_STORE,'readwrite');
+      tx.objectStore(BGM_STORE).delete('bgm');
+      tx.oncomplete=()=>res();
+      tx.onerror=()=>res();
+    });
+  }catch(e){}
+}
+
+function updateMusicStatusBox(){
+  const box=$('musicStatusBox');if(!box)return;
+  const has=bgmDataUrl||INJECTED_BGM;
+  let html;
+  if(has){
+    html='<div class="status ok">✅ 已选好音乐（还没写进文件夹）</div><div class="info">点「💾 保存到网站文件夹」，会写成 music/真的爱你.xxx 真实文件，手机也能听</div>';
+  }else if(musicReady){
+    html='<div class="status ok">✅ music 文件夹里已有音乐：'+esc(MUSIC_SOURCES[currentMusicIdx]||'')+'</div><div class="info">点「进入」就会播放</div>';
+  }else{
+    html='<div class="status empty">music 文件夹里还没有音乐</div><div class="info">把 mp3 放进 music 文件夹并命名为 真的爱你.mp3 即可；本网页不会再用合成音兜底</div>';
+  }
+  if(boundDirName)html+='<div class="info">📁 已绑定网站文件夹：'+esc(boundDirName)+'</div>';
+  box.innerHTML=html;
+}
+
+/* 页面打开时：先看是否注入 base64，再读 IndexedDB，最后检测本地文件 */
+async function initBGM(){
+  if(INJECTED_BGM){
+    bgmDataUrl=INJECTED_BGM;
+    musicReady=true;
+    updateMusicStatusBox();
+    return;
+  }
+  const stored=await loadBGMFromDB();
+  if(stored&&stored.data){
+    bgmDataUrl=stored.data;
+    musicReady=true;
+    console.log('[音乐] 从 IndexedDB 加载嵌入音乐');
+    updateMusicStatusBox();
+    return;
+  }
+  /* 否则检测本地文件 */
+  detectLocalMusic();
+}
+function detectLocalMusic(){
+  let i=0;
+  const tryNext=()=>{
+    if(i>=MUSIC_SOURCES.length){console.log('[音乐] music 文件夹里没有音频文件，保持安静（不使用合成音）');return}
+    const src=MUSIC_SOURCES[i];let settled=false;
+    const timer=setTimeout(()=>{if(settled)return;settled=true;i++;tryNext()},2000);
+    const onReady=()=>{if(settled)return;settled=true;clearTimeout(timer);currentMusicIdx=i;musicReady=true;console.log('[音乐] 找到本地文件：'+src)};
+    const onFail=()=>{if(settled)return;settled=true;clearTimeout(timer);i++;tryNext()};
+    try{const t=new Audio();t.preload='auto';t.src=src;t.addEventListener('canplaythrough',onReady,{once:true});t.addEventListener('error',onFail,{once:true});t.load()}catch(e){onFail()}
+  };
+  tryNext();
+}
+
+function playBGMDataUrl(u){
+  try{
+    bgm.src=u;bgm.loop=true;bgm.volume=0.7;
+    const p=bgm.play();
+    if(p&&p.then)p.then(()=>console.log('[音乐] 播放已选音乐')).catch(e=>console.warn('[音乐] 播放失败',e));
+  }catch(e){console.warn('[音乐] 播放失败',e)}
+}
+
+function playMusicNow(){
+  if(musicStarted)return;musicStarted=true;
+  /* 只播放真实音频文件（music 文件夹里的），没有就安静 —— 永远不用合成音 */
+  if(bgmDataUrl){playBGMDataUrl(bgmDataUrl);return}
+  if(musicReady){
+    const src=MUSIC_SOURCES[currentMusicIdx];
+    bgm.src=src;bgm.loop=true;bgm.volume=0.6;
+    const p=bgm.play();
+    if(p&&p.then)p.then(()=>console.log('[音乐] 播放 '+src)).catch(()=>tryNextMusic(0));
+    return;
+  }
+  tryNextMusic(0);
+}
+function tryNextMusic(i){
+  if(i>=MUSIC_SOURCES.length){console.log('[音乐] 没有可播放的音频文件，页面保持安静');return}
+  const src=MUSIC_SOURCES[i];
+  try{bgm.src=src;bgm.load();const p=bgm.play();if(p&&p.then)p.then(()=>{currentMusicIdx=i}).catch(()=>tryNextMusic(i+1))}catch(e){tryNextMusic(i+1)}
+}
+
+/* 合成音乐模块已删除：本网页永不使用合成音，只播放 music 文件夹里的真实音频文件 */
+
+/* 音乐管理按钮 */
+/* 选好 / 拖入的音乐统一走这里：能写文件就直接写进 music/，写不了就先记在浏览器里 */
+async function adoptMusicFile(f){
+  if(!f)return;
+  const sizeMB=(f.size/1024/1024).toFixed(2);
+  if(f.size>15*1024*1024&&!confirm('文件约 '+sizeMB+'MB，比较大。\n\n继续吗？'))return;
+  const dataUrl=await new Promise(res=>{
+    const r=new FileReader();
+    r.onload=e=>res(e.target.result||null);
+    r.onerror=()=>res(null);
+    r.readAsDataURL(f);
+  });
+  if(!dataUrl){toast('读取失败，换一个文件试试');return}
+  try{
+    await saveBGMToDB(dataUrl,f.name);
+    bgmDataUrl=dataUrl;
+    musicFileName='真的爱你.'+(((f.name||'').match(/\.(mp3|m4a|ogg|wav|mp4|aac|flac)$/i)||[,'mp3'])[1].toLowerCase());
+    musicReady=true;musicStarted=false;
+    const wrote=await writeMusicFile(dataUrl,f.name);
+    if(wrote){
+      const rel='music/'+wrote,idx=MUSIC_SOURCES.indexOf(rel);
+      if(idx<0){MUSIC_SOURCES.unshift(rel);currentMusicIdx=0}else currentMusicIdx=idx;
+      bgmDataUrl=null;musicReady=true;
+      await clearBGMFromDB();
+      updateMusicStatusBox();
+      toast('✅ 已写入 '+rel+'（约 '+sizeMB+'MB），手机也能听');
+      try{bgm.src=rel;bgm.loop=true;bgm.volume=0.7;const bp=bgm.play();if(bp&&bp.catch)bp.catch(()=>{})}catch(e){}
+    }else{
+      updateMusicStatusBox();
+      toast('✅ 已选好 '+f.name+'（约 '+sizeMB+'MB），点「💾 保存到网站文件夹」写进文件夹');
+      playBGMDataUrl(dataUrl);
+    }
+  }catch(err){console.error(err);toast('保存失败：'+err.message)}
+}
+$('bgmPickBtn').addEventListener('click',()=>{
+  const input=document.createElement('input');
+  input.type='file';input.accept='audio/*,.mp3,.m4a,.ogg,.wav';
+  input.style.cssText='position:fixed;left:-9999px';
+  document.body.appendChild(input);
+  input.addEventListener('change',()=>{
+    const f=input.files&&input.files[0];
+    try{document.body.removeChild(input)}catch(e){}
+    if(f)adoptMusicFile(f);
+  });
+  input.click();
+});
+/* 直接把 mp3 拖到网页上也可以（会自动写进 music 文件夹） */
+document.addEventListener('dragover',e=>e.preventDefault());
+document.addEventListener('drop',e=>{
+  e.preventDefault();
+  const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
+  if(!f)return;
+  if(f.type.indexOf('audio')===0||/\.(mp3|m4a|ogg|wav|aac|flac|mp4)$/i.test(f.name)){
+    adoptMusicFile(f);
+  }else{
+    toast('拖进来的是音频才行（mp3 / m4a / ogg / wav）');
+  }
+});
+
+$('bgmPlayBtn').addEventListener('click',()=>{
+  if(!bgmDataUrl){toast('尚未嵌入音乐，请先选择 MP3 文件');return}
+  try{bgm.pause();bgm.currentTime=0;playBGMDataUrl(bgmDataUrl)}catch(e){toast('试听失败')}
+});
+
+$('bgmClearBtn').addEventListener('click',async ()=>{
+  if(!confirm('确定清除已嵌入的音乐吗？'))return;
+  await clearBGMFromDB();
+  bgmDataUrl=null;
+  try{bgm.pause();bgm.removeAttribute('src')}catch(e){}
+  updateMusicStatusBox();
+  toast('已清除嵌入音乐');
+});
+
+/* ===================================================
+   ==================== 动画核心 ====================
+   =================================================== */
+const T1=2.20,T2=5.60,T3=10.20,FLY_GAP=.085,FLY_DUR=.95;
+let W=0,H=0,cx=0,cy=0,DPR=1,heartScale=20,circleR=200;
+let wins=[],particles=[],orbs=[],trail=[];
+let t=0,last=0,finalShown=false,orbsBurst=false,finalTimer=0,topY=60,running=false,envelopeTriggered=false;
+
+function resize(){
+  DPR=Math.min(window.devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cx=W/2;cy=H/2;
+  cvs.width=Math.floor(W*DPR);cvs.height=Math.floor(H*DPR);cvs.style.width=W+'px';cvs.style.height=H+'px';
+  ctx.setTransform(DPR,0,0,DPR,0,0);ctx.globalCompositeOperation='source-over';ctx.fillStyle='#080512';ctx.fillRect(0,0,W,H);
+  document.documentElement.style.setProperty('--ww',(W<700?64:84)+'px');
+  heartScale=Math.min(W*.44/16,H*.40/14.25);circleR=Math.min(W,H)*.30;topY=clamp(H*.10,46,110);
+  wins.forEach(w=>{w.bx=clamp(cx+rnd(-.44,.44)*W,60,W-60);w.by=clamp(cy+rnd(-.42,.42)*H,40,H-40);w.cr=circleR*rnd(.82,1.08);w.topX=clamp(cx+rnd(-.36,.36)*W,50,W-50);w.topY=topY});
+}
+function buildWinHTML(title,msg,photo){
+  let inner='<div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="ttl">'+esc(title)+'</span></div>';
+  if(photo){const k=mediaKind(photo),s=mediaSrc(photo);if(k==='video')inner+='<video class="photo" src="'+s+'" muted autoplay playsinline webkit-playsinline></video>';else inner+='<img class="photo" src="'+s+'" alt="">'}
+  inner+='<div class="msg">'+esc(msg)+'</div>';
+  return inner;
+}
+function createWindows(){
+  stage.innerHTML='';wins=[];orbs=[];particles=[];trail=[];finalTimer=0;envelopeTriggered=false;
+  const msgs=curMessages(),photos=curPhotos();
+  const N=W<700?36:58;
+  for(let i=0;i<N;i++){
+    const el=document.createElement('div');el.className='win';
+    const hue=Math.floor(Math.random()*360);el.style.setProperty('--h',hue);
+    el.innerHTML=buildWinHTML(DEFAULT_TITLES[i%DEFAULT_TITLES.length],msgs[i%msgs.length],photos[i%photos.length]);
+    stage.appendChild(el);
+    const a=(i/N)*Math.PI*2,px=16*Math.pow(Math.sin(a),3);
+    const py=13*Math.cos(a)-5*Math.cos(2*a)-2*Math.cos(3*a)-Math.cos(4*a);
+    const hx0=px,hy0=-(py+2.75),len=Math.sqrt(hx0*hx0+hy0*hy0)||1;
+    wins.push({el,hue,idx:i,x:cx,y:cy,scale:0,rot:0,op:0,bx:clamp(cx+rnd(-.44,.44)*W,60,W-60),by:clamp(cy+rnd(-.42,.42)*H,40,H-40),brot:rnd(-16,16),cbase:(i/N)*Math.PI*2,cr:circleR*rnd(.82,1.08),hx0,hy0,nx:hx0/len,ny:hy0/len,topX:clamp(cx+rnd(-.36,.36)*W,50,W-50),topY,flyStart:0,dead:false});
+  }
+}
+const addTrail=(x,y,hue,size,life)=>{if(trail.length>1100)return;trail.push({x,y,hue,size:size||2.2,life:life||1,decay:rnd(1.3,2.2)})};
+const spawnFirework=(x,y,hue,count,power)=>{count=count||(34+Math.floor(Math.random()*22));power=power||rnd(90,260);if(particles.length>4200)return;for(let i=0;i<count;i++){const ang=Math.random()*Math.PI*2,sp=power*(.35+Math.random()*.75);particles.push({x,y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,life:1,decay:rnd(.45,1.05),hue:hue+rnd(-25,25),size:rnd(1.2,3)})}};
+function heartBurstParticles(){
+  const cxp=cx,cyp=cy;
+  for(let i=0;i<260;i++){const t2=(i/260)*Math.PI*2;const hx=16*Math.pow(Math.sin(t2),3),hy=-(13*Math.cos(t2)-5*Math.cos(2*t2)-2*Math.cos(3*t2)-Math.cos(4*t2));const sc=5+Math.random()*3;const px=cxp+hx*sc,py=cyp+hy*sc;const ang=Math.atan2(py-cyp,px-cxp),sp=150+Math.random()*420;particles.push({x:cxp+hx*1.5,y:cyp+hy*1.5,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,life:1,decay:rnd(.40,.90),hue:340+rnd(-40,40),size:rnd(1.8,3.8)})}
+  for(let j=0;j<140;j++){const t3=Math.random()*Math.PI*2,fr=Math.random()*.85;const hx2=16*Math.pow(Math.sin(t3),3)*fr,hy2=-(13*Math.cos(t3)-5*Math.cos(2*t3)-2*Math.cos(3*t3)-Math.cos(4*t3))*fr;const sc2=5+Math.random()*3,ang2=Math.random()*Math.PI*2,sp2=60+Math.random()*280;particles.push({x:cxp+hx2*sc2,y:cyp+hy2*sc2,vx:Math.cos(ang2)*sp2,vy:Math.sin(ang2)*sp2-90,life:1,decay:rnd(.50,1),hue:330+rnd(-50,50),size:rnd(1.5,3.2)})}
+  spawnFirework(cxp,cyp,340,120,480);spawnFirework(cxp,cyp,290,90,380);spawnFirework(cxp,cyp,20,80,360);
+}
+function update(dt){
+  for(let i=0;i<wins.length;i++){const w=wins[i];if(w.dead)continue;
+    if(t>=T3){if(!w.flyStart)w.flyStart=T3+w.idx*FLY_GAP;
+      if(t>=w.flyStart){const ft=clamp((t-w.flyStart)/FLY_DUR,0,1);const pulse=1+.045*Math.sin((T3-T2)*3.2);const s0=heartScale*pulse;const sx=cx+w.hx0*s0+w.nx*10,sy=cy+w.hy0*s0+w.ny*10;const ease=ft*ft*(3-2*ft);w.x=sx+(w.topX-sx)*ease;w.y=sy+(w.topY-sy)*ease;w.rot+=(0-w.rot)*(1-Math.pow(.9,dt*60));w.op=1;w.scale=.80*(1-ft);if(Math.random()<.9)addTrail(w.x,w.y,w.hue,2.4,1);if(ft>=1){w.dead=true;w.op=0;w.scale=0;w.el.style.opacity='0';spawnFirework(w.topX,w.topY,w.hue,26,150)}w.el.style.transform=`translate3d(${w.x.toFixed(2)}px,${w.y.toFixed(2)}px,0) translate(-50%,-50%) scale(${w.scale.toFixed(3)}) rotate(${w.rot.toFixed(2)}deg)`;w.el.style.opacity=w.op.toFixed(3);continue}}
+    let tx,ty,ts,tr,to;
+    if(t<T1){tx=w.bx;ty=w.by;ts=1;tr=w.brot;to=1}
+    else if(t<T2){const p=t-T1,ang=w.cbase+p*1.15;tx=cx+Math.cos(ang)*w.cr;ty=cy+Math.sin(ang)*w.cr*.92;ts=.85;tr=0;to=1}
+    else{const p2=t-T2,pulse2=1+.045*Math.sin(p2*3.2),s2=heartScale*pulse2;tx=cx+w.hx0*s2+w.nx*10;ty=cy+w.hy0*s2+w.ny*10;ts=.80;tr=0;to=1}
+    const kk=(t<T1)?1-Math.pow(.80,dt*60):1-Math.pow(.90,dt*60);
+    w.x+=(tx-w.x)*kk;w.y+=(ty-w.y)*kk;w.scale+=(ts-w.scale)*kk;w.rot+=(tr-w.rot)*kk;w.op+=(to-w.op)*kk;
+    if(t<T1&&w.scale>.3&&Math.random()<.5)addTrail(w.x,w.y,w.hue,1.8,.7);
+    else if(t>=T2&&t<T3&&Math.random()<.22)addTrail(w.x,w.y,w.hue,1.6,.55);
+    w.el.style.transform=`translate3d(${w.x.toFixed(2)}px,${w.y.toFixed(2)}px,0) translate(-50%,-50%) scale(${w.scale.toFixed(3)}) rotate(${w.rot.toFixed(2)}deg)`;
+    w.el.style.opacity=w.op.toFixed(3);
+  }
+  if(!orbsBurst&&t>=T3+wins.length*FLY_GAP+FLY_DUR+.05){orbsBurst=true;const N2=wins.length,margin=Math.min(W*.10,90),usable=W-margin*2;for(let k=0;k<N2;k++){const ox=margin+(usable*(k/(N2-1)));orbs.push({x:ox,y:topY,r:7+Math.random()*4,hue:Math.random()*360,state:'line',vy:0,delay:k*.018,timer:0,scale:1})}}
+  if(orbsBurst&&!envelopeTriggered){const fallTarget=cy;let allDone=orbs.length>0;
+    orbs.forEach(o=>{if(o.state==='done')return;allDone=false;
+      if(o.state==='line'){o.timer+=dt;if(o.timer>=o.delay){o.state='fall';o.vy=0}}
+      else if(o.state==='fall'){o.vy+=900*dt;o.y+=o.vy*dt;addTrail(o.x,o.y,o.hue,2.6,1);if(o.y>=fallTarget){o.state='explode';o.timer=0;o.scale=1}}
+      else if(o.state==='explode'){o.timer+=dt;o.scale=1+o.timer*3.2;if(o.timer>=.28){spawnFirework(o.x,o.y,o.hue,32,220);o.state='done'}}
+    });
+    if(allDone){finalTimer+=dt;if(finalTimer>.7){envelopeTriggered=true;setTimeout(showEnvelope,300)}}
+  }
+  for(let pi=particles.length-1;pi>=0;pi--){const p=particles[pi];p.life-=dt*p.decay;if(p.life<=0){particles.splice(pi,1);continue}const damp=Math.pow(.28,dt);p.vx*=damp;p.vy*=damp;p.vy+=130*dt;p.x+=p.vx*dt;p.y+=p.vy*dt}
+  for(let ti=trail.length-1;ti>=0;ti--){const tr2=trail[ti];tr2.life-=dt*tr2.decay;if(tr2.life<=0)trail.splice(ti,1)}
+}
+function renderFX(){
+  ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(8,5,18,0.18)';ctx.fillRect(0,0,W,H);
+  ctx.globalCompositeOperation='lighter';
+  trail.forEach(tr=>{const a=tr.life;ctx.fillStyle='hsla('+(tr.hue|0)+',100%,'+(60+a*20).toFixed(0)+'%,'+a.toFixed(2)+')';ctx.beginPath();ctx.arc(tr.x,tr.y,tr.size*a+.4,0,6.2832);ctx.fill()});
+  orbs.forEach(o=>{if(o.state==='done')return;const r=o.r*(o.state==='explode'?o.scale:1);const grad=ctx.createRadialGradient(o.x,o.y,0,o.x,o.y,r);grad.addColorStop(0,'hsla('+(o.hue|0)+',100%,90%,.95)');grad.addColorStop(.5,'hsla('+(o.hue|0)+',100%,72%,.85)');grad.addColorStop(1,'hsla('+(o.hue|0)+',100%,60%,0)');ctx.fillStyle=grad;ctx.beginPath();ctx.arc(o.x,o.y,r,0,6.2832);ctx.fill()});
+  particles.forEach(p=>{const a2=p.life;ctx.fillStyle='hsla('+(p.hue|0)+',100%,'+(58+a2*25).toFixed(0)+'%,'+a2.toFixed(2)+')';ctx.beginPath();ctx.arc(p.x,p.y,p.size*a2+.5,0,6.2832);ctx.fill()});
+  ctx.globalCompositeOperation='source-over';
+}
+function loop(now){requestAnimationFrame(loop);if(!running){last=now;return}if(!last)last=now;let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;if(dt<0)dt=0;t+=dt;try{update(dt);renderFX()}catch(e){console.error('[loop]',e)}}
+function startAnim(){
+  stopVideos();
+  t=0;finalShown=false;orbsBurst=false;finalTimer=0;envelopeTriggered=false;last=0;running=true;$('final').classList.remove('show');
+  try{hideLetter()}catch(e){}
+  try{hideFamily()}catch(e){}
+  try{hideWheel()}catch(e){}
+  try{hideBlessing()}catch(e){}
+  try{hideCake()}catch(e){}
+  try{hideAlbum()}catch(e){}
+  try{hideHeart()}catch(e){}
+  ctx.globalCompositeOperation='source-over';ctx.fillStyle='#080512';ctx.fillRect(0,0,W,H);
+  createWindows();
+}
+
+/* ==================== 信件 ==================== */
+let letterIdx=0,letterTotal=3,letterOpened=false,letterClosing=false,letterLocked=false;
+function applyLetter(){
+  $('p1Title').textContent=letter.p1Title||DEFAULT_LETTER.p1Title;
+  $('p1Body').innerHTML=esc(letter.p1Body||DEFAULT_LETTER.p1Body).replace(/\n/g,'<br>');
+  $('p2Title').textContent=letter.p2Title||DEFAULT_LETTER.p2Title;
+  const grid=$('p2Grid');grid.innerHTML='';
+  const cells=(letter.p2Cells&&letter.p2Cells.length)?letter.p2Cells:DEFAULT_LETTER.p2Cells;
+  for(let i=0;i<6;i++){const c=document.createElement('div');c.className='torn-cell';c.innerHTML=esc(cells[i]||'').replace(/\n/g,'<br>');grid.appendChild(c)}
+  $('p3Title').textContent=letter.p3Title||DEFAULT_LETTER.p3Title;
+  $('p3Body').innerHTML=esc(letter.p3Body||DEFAULT_LETTER.p3Body).replace(/\n/g,'<br>');
+  updatePaperWheel();
+}
+function updatePaperWheel(){
+  const papers=document.querySelectorAll('#paperStage .paper');
+  papers.forEach((p,i)=>p.setAttribute('data-state',i===letterIdx?'cur':(i<letterIdx?'prev':'next')));
+  $('pageNum').textContent=(letterIdx+1)+' / '+letterTotal;
+}
+/* 所有视频统一走这里：不自动播放、点一下才播、不循环、切换页面时停 */
+function stopVideos(root){
+  const list=(root||document).querySelectorAll('video');
+  for(let i=0;i<list.length;i++){try{list[i].pause();list[i].currentTime=0}catch(e){}}
+}
+function makeClickVideo(src,onEnded,tip){
+  const box=document.createElement('div');box.className='cvbox';
+  const v=document.createElement('video');
+  v.src=src;v.loop=false;v.playsInline=true;v.preload='metadata';
+  v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');
+  box.appendChild(v);
+  const btn=document.createElement('div');btn.className='cvplay';btn.textContent='▶';
+  const tipEl=document.createElement('div');tipEl.className='cvtip';tipEl.textContent=tip||'轻触播放';
+  box.appendChild(btn);box.appendChild(tipEl);
+  const sync=()=>{box.classList.toggle('playing',!v.paused&&!v.ended)};
+  v.addEventListener('play',sync);v.addEventListener('pause',sync);
+  v.addEventListener('ended',()=>{sync();if(onEnded)onEnded()});
+  const toggle=e=>{if(e){e.preventDefault();e.stopPropagation()}if(v.paused){const p=v.play();if(p&&p.catch)p.catch(()=>{})}else v.pause()};
+  btn.addEventListener('click',toggle);
+  v.addEventListener('click',toggle);
+  attachFallback(v);
+  sync();
+  return {box,v,toggle};
+}
+function createAutoVideoEnded(src,onEnded){
+  return makeClickVideo(src,onEnded,'轻触播放').box;
+}
+/* 竖屏视频：给外层盒子加 portrait，手机上占满屏幕高度 */
+function fitVideo(wrap,v){
+  const tune=()=>{if(!v.videoWidth||!v.videoHeight)return;wrap.classList.toggle('portrait',v.videoHeight>v.videoWidth)};
+  if(v.readyState>=1)tune();else v.addEventListener('loadedmetadata',tune,{once:true});
+}
+function onVideoDuration(v,cb){
+  const fire=()=>{if(isFinite(v.duration)&&v.duration>0)cb(v.duration)};
+  if(v.readyState>=1)fire();else v.addEventListener('loadedmetadata',fire,{once:true});
+}
+/* 路径兜底：网页和网站文件夹都可能被直接双击打开，自动换一个相对前缀重试一次 */
+const ALT_PREFIX='妈妈生日快乐网站/';
+function altSrc(src){
+  if(!src||src.indexOf('data:')===0||/^(https?:|blob:|file:)/i.test(src))return '';
+  if(src.indexOf(ALT_PREFIX)===0)return src.slice(ALT_PREFIX.length);
+  return ALT_PREFIX+src;
+}
+function attachFallback(v){
+  let tried=false;
+  v.addEventListener('error',()=>{
+    if(tried)return;tried=true;
+    const cur=v.getAttribute('src')||'';
+    const alt=altSrc(cur);
+    if(alt){v.setAttribute('src',alt);try{v.load();const p=v.play();if(p&&p.catch)p.catch(()=>{})}catch(e){}}
+  });
+}
+function createAutoVideo(src){
+  return makeClickVideo(src,null,'轻触播放').box;
+}
+function setupLetterVideo(){
+  const vw=$('p3VideoWrap');
+  vw.classList.remove('portrait');
+  vw.querySelectorAll('video,.cvbox,.video-empty').forEach(el=>el.remove());
+  const cont=$('p3Continue');cont.classList.remove('show');
+  if(!letter.p3Video)return;
+  const box=createAutoVideoEnded(mediaSrc(letter.p3Video),()=>{cont.classList.add('show')});
+  fitVideo(vw,box.querySelector('video'));
+  vw.insertBefore(box,cont);
+}
+function showLetterVideo(){
+  const vw=$('p3VideoWrap');
+  if(vw.querySelector('video'))return;
+  if(!letter.p3Video)return;
+  setupLetterVideo();
+}
+$('p3Continue').addEventListener('click',e=>{e.stopPropagation();closeLetter()});
+
+function showEnvelope(){
+  applyLetter();letterIdx=0;letterOpened=false;letterClosing=false;letterLocked=false;
+  const env=$('envelopeWrap');env.classList.remove('hide','open');env.style.transform='';env.style.opacity='1';
+  $('paperWrap').classList.remove('show');$('envHint').style.display='block';
+  $('letterScene').classList.add('show');
+  setTimeout(()=>{if(!letterOpened)openEnvelope()},1500);
+}
+function openEnvelope(){
+  if(letterOpened)return;letterOpened=true;letterLocked=true;$('envHint').style.display='none';
+  const env=$('envelopeWrap');env.classList.add('open');
+  setTimeout(()=>{env.style.transform='scale(0.55) translateY(-6%)';env.style.opacity='0.35'},400);
+  setTimeout(()=>{$('paperWrap').classList.add('show');letterLocked=false;updatePaperWheel();$('letterHint').textContent='↑ 向上滑动 / 滚轮翻页　·　轻触视频播放'},800);
+}
+function nextPage(){
+  if(letterLocked||letterClosing||!letterOpened)return;
+  stopVideos($('letterScene'));
+  if(letterIdx<letterTotal-1){
+    letterIdx++;updatePaperWheel();
+    if(letterIdx===2)setTimeout(showLetterVideo,400);
+  }else closeLetter();
+}
+function prevPage(){if(letterLocked||letterClosing||!letterOpened)return;stopVideos($('letterScene'));if(letterIdx>0){letterIdx--;updatePaperWheel()}}
+function closeLetter(){
+  if(letterClosing)return;letterClosing=true;letterLocked=true;
+  stopVideos($('letterScene'));
+  const papers=document.querySelectorAll('#paperStage .paper');
+  papers.forEach((p,i)=>{setTimeout(()=>p.setAttribute('data-state','next'),(papers.length-1-i)*120)});
+  setTimeout(()=>$('paperWrap').classList.remove('show'),papers.length*120+260);
+  setTimeout(()=>{const e=$('envelopeWrap');e.style.transform='scale(1) translateY(0)';e.style.opacity='1'},papers.length*120+480);
+  setTimeout(()=>$('envelopeWrap').classList.remove('open'),papers.length*120+820);
+  setTimeout(()=>$('envelopeWrap').classList.add('hide'),papers.length*120+1500);
+  setTimeout(()=>{$('letterScene').classList.remove('show');showFamily()},papers.length*120+2100);
+}
+function hideLetter(){
+  stopVideos();
+  $('letterScene').classList.remove('show');
+  const e=$('envelopeWrap');e.classList.remove('open','hide');e.style.transform='';e.style.opacity='1';
+  $('paperWrap').classList.remove('show');$('envHint').style.display='block';
+  $('letterHint').textContent='点击信封打开';
+  letterIdx=0;letterOpened=false;letterClosing=false;letterLocked=false;
+  document.querySelectorAll('#paperStage .paper').forEach((p,i)=>p.setAttribute('data-state',i===0?'cur':'next'));
+  const vw=$('p3VideoWrap');vw.querySelectorAll('video,.cvbox').forEach(el=>el.remove());
+  $('p3Continue').classList.remove('show');
+  updatePaperWheel();
+}
+$('envelopeWrap').addEventListener('click',()=>{if(!letterOpened)openEnvelope()});
+$('envelopeWrap').addEventListener('touchend',e=>{e.preventDefault();if(!letterOpened)openEnvelope()},{passive:false});
+
+let paperStartY=0,paperStartX=0,paperLock=0,paperScrollEl=null;
+const paperStage=$('paperStage');
+/* 整屏都能滑动翻页：以前只监听纸面本身，手指落在纸外面就完全没反应 */
+const letterSceneEl=$('letterScene');
+function paperScrollHost(el){while(el&&el!==letterSceneEl){if(el.classList&&el.classList.contains('paper-scroll'))return el;el=el.parentElement}return null}
+function paperAtBottom(){
+  if(!paperScrollEl)return true;
+  if(paperScrollEl.scrollHeight<=paperScrollEl.clientHeight+4)return true;
+  return paperScrollEl.scrollTop+paperScrollEl.clientHeight>=paperScrollEl.scrollHeight-6;
+}
+letterSceneEl.addEventListener('touchstart',e=>{if(e.touches.length!==1){paperScrollEl=null;return}paperStartY=e.touches[0].clientY;paperStartX=e.touches[0].clientX;paperScrollEl=paperScrollHost(e.target)},{passive:true});
+letterSceneEl.addEventListener('touchend',e=>{if(e.changedTouches.length!==1)return;const dy=paperStartY-e.changedTouches[0].clientY,dx=Math.abs(paperStartX-e.changedTouches[0].clientX);if(dx>Math.abs(dy))return;if(dy>46){if(paperAtBottom())nextPage()}else if(dy<-46)prevPage()},{passive:true});
+letterSceneEl.addEventListener('wheel',e=>{if(!$('paperWrap').classList.contains('show'))return;e.preventDefault();if(paperLock)return;paperLock=1;setTimeout(()=>paperLock=0,260);if(e.deltaY>0){if(paperAtBottom())nextPage()}else prevPage()},{passive:false});
+
+/* ==================== 家人祝福 ==================== */
+function applyFamily(){
+  const grid=$('familyGrid');grid.innerHTML='';
+  const cards=(family.cards&&family.cards.length===6)?family.cards:DEFAULT_FAMILY.cards;
+  for(let i=0;i<6;i++){
+    const c=cards[i]||{title:'',photo:'',text:''};
+    const el=document.createElement('div');
+    const canMedia=(i<3);
+    el.className='family-card'+(canMedia?'':' family-card-text');
+    if(canMedia){
+      const media=document.createElement('div');media.className='fc-media';
+      if(c.photo){
+        const kind=mediaKind(c.photo),src=mediaSrc(c.photo);
+        if(kind==='video'){const v=createAutoVideo(src);media.appendChild(v)}
+        else{const img=document.createElement('img');img.src=src;media.appendChild(img)}
+      }else{media.textContent='（家人视频/照片）'}
+      const txt=document.createElement('div');txt.className='fc-text';txt.textContent=c.text||'';
+      el.appendChild(media);el.appendChild(txt);
+    }else{
+      const title=document.createElement('div');title.className='fc-title';title.textContent=c.title||'';
+      const txt=document.createElement('div');txt.className='fc-text-big';txt.textContent=c.text||'';
+      el.appendChild(title);el.appendChild(txt);
+    }
+    grid.appendChild(el);
+  }
+}
+function showFamily(){applyFamily();$('familyScene').classList.add('show')}
+function hideFamily(){stopVideos();$('familyScene').classList.remove('show')}
+let famStartY=0,famLock=0;
+$('familyScene').addEventListener('touchstart',e=>{if(e.touches.length!==1)return;famStartY=e.touches[0].clientY},{passive:true});
+$('familyScene').addEventListener('touchend',e=>{if(e.changedTouches.length!==1)return;const dy=famStartY-e.changedTouches[0].clientY;if(dy>50)familyNext()},{passive:true});
+$('familyScene').addEventListener('wheel',e=>{if(famLock)return;famLock=1;setTimeout(()=>famLock=0,400);if(e.deltaY>0)familyNext()},{passive:false});
+$('familyScene').addEventListener('click',e=>{if(e.target.tagName==='VIDEO'||e.target.tagName==='IMG')return;familyNext()});
+
+/* ==================== 相册：全部照片 / 视频 ==================== */
+function collectAlbum(){
+  const list=[],seen=new Set();
+  (INJECTED_ALBUM||[]).forEach(it=>{
+    if(!it||!it.src)return;
+    const s=mediaSrc(it.src);
+    if(!s||seen.has(s))return;
+    seen.add(s);list.push({src:s,type:it.type||mediaKind(s),title:it.title||''});
+  });
+  const push=(src,title)=>{if(!src)return;const s=mediaSrc(src);if(!s||seen.has(s))return;seen.add(s);list.push({src:s,type:mediaKind(src),title:title||''})};
+  curPhotos().forEach((p,i)=>{push(p,'照片 '+(i+1))});
+  if(letter.p3Video)push(letter.p3Video,'信件第3页');
+  if(family.cards)family.cards.forEach(c=>{if(c.photo)push(c.photo,(c.title||'家人'))});
+  if(blessing.video)push(blessing.video,'祝福视频');
+  if(cake.video)push(cake.video,'蛋糕视频');
+  return list;
+}
+/* 前面几页已经播过的视频/照片，不再在相册里重复出现 */
+function siteShownMedia(){
+  const used=new Set();
+  const add=s=>{if(s)used.add(mediaSrc(s))};
+  if(letter.p3Video)add(letter.p3Video);
+  if(family.cards)family.cards.forEach(c=>add(c.photo));
+  if(blessing.video)add(blessing.video);
+  if(cake.video)add(cake.video);
+  return used;
+}
+function collectAlbumExtras(){
+  const used=siteShownMedia();
+  return collectAlbum().filter(it=>!used.has(it.src));
+}
+function albumAtBottom(){const g=$('albumGrid');return g.scrollTop+g.clientHeight>=g.scrollHeight-10}
+function applyAlbum(){
+  const grid=$('albumGrid');grid.innerHTML='';
+  const list=collectAlbumExtras();
+  if(!list.length){
+    grid.innerHTML='<div class="album-empty">相册还是空的<br>把照片放进 photos 文件夹、视频放进 videos 文件夹，<br>再运行「更新相册目录.bat」即可在这里看到</div>';
+    return;
+  }
+  list.forEach(it=>{
+    const el=document.createElement('div');el.className='album-item';
+    const isVideo=(it.type==='video')||mediaKind(it.src)==='video';
+    if(isVideo){
+      const v=document.createElement('video');
+      v.src=it.src;v.muted=true;v.loop=false;v.playsInline=true;v.preload='metadata';
+      v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');
+      v.addEventListener('loadedmetadata',()=>{try{v.currentTime=.1}catch(e){}},{once:true});
+      attachFallback(v);
+      el.appendChild(v);
+    }else{
+      const img=new Image();img.src=it.src;img.loading='lazy';img.alt='';
+      img.addEventListener('error',()=>{const alt=altSrc(img.getAttribute('src')||'');if(alt)img.src=alt},{once:true});
+      el.appendChild(img);
+    }
+    const tag=document.createElement('span');tag.className='tag';tag.textContent=isVideo?'视频':'照片';el.appendChild(tag);
+    el.addEventListener('click',ev=>{ev.stopPropagation();openAlbumView(it)});
+    grid.appendChild(el);
+  });
+}
+function openAlbumView(it){
+  const box=$('albumView');box.innerHTML='';
+  const close=document.createElement('div');close.id='albumViewClose';close.textContent='✕';box.appendChild(close);
+  let el;
+  if(mediaKind(it.src)==='video'){
+    el=document.createElement('video');el.src=it.src;el.controls=true;el.autoplay=false;el.playsInline=true;
+    el.setAttribute('playsinline','');el.setAttribute('webkit-playsinline','');
+    attachFallback(el);
+  }else{
+    el=new Image();el.src=it.src;
+    el.addEventListener('error',()=>{const alt=altSrc(el.getAttribute('src')||'');if(alt)el.src=alt},{once:true});
+  }
+  box.appendChild(el);box.classList.add('show');
+}
+function closeAlbumView(){const box=$('albumView');if(box){stopVideos(box);box.classList.remove('show');box.innerHTML=''}}
+function showAlbum(){applyAlbum();$('albumScene').classList.add('show')}
+function hideAlbum(){stopVideos();$('albumScene').classList.remove('show');closeAlbumView()}
+function albumNext(){hideAlbum();showWheel()}
+function familyNext(){hideFamily();if(collectAlbumExtras().length>0)showAlbum();else showWheel()}
+let albStartY=0,albLock=0;
+$('albumScene').addEventListener('touchstart',e=>{if(e.touches.length!==1)return;albStartY=e.touches[0].clientY},{passive:true});
+$('albumScene').addEventListener('touchend',e=>{if(e.changedTouches.length!==1)return;const dy=albStartY-e.changedTouches[0].clientY;if(dy>50&&albumAtBottom())albumNext()},{passive:true});
+$('albumScene').addEventListener('wheel',e=>{if(e.deltaY<=0)return;if(!albumAtBottom())return;if(albLock)return;albLock=1;setTimeout(()=>albLock=0,400);e.preventDefault();albumNext()},{passive:false});
+$('albumScene').addEventListener('click',e=>{if(e.target.closest('.album-item'))return;albumNext()});
+$('albumView').addEventListener('click',e=>{if(e.target.id==='albumViewClose'||e.target.id==='albumView')closeAlbumView()});
+
+
+const WHEEL_RADIUS=170,WHEEL_ANGLE_PER=44;
+let wheelCurrent=0,wheelCards=[],wheelSceneLocked=false,wheelFinished=false;
+function buildWheel(){
+  $('wheelTitle').textContent=wheel.title||DEFAULT_WHEEL.title;
+  const cont=$('wheelContainer');cont.innerHTML='';wheelCards=[];
+  const nav=$('wheelRightNav');nav.innerHTML='';
+  const lines=(wheel.lines&&wheel.lines.length===7)?wheel.lines:DEFAULT_WHEEL.lines;
+  for(let i=0;i<7;i++){
+    const c=document.createElement('div');c.className='wheel-card';c.textContent=lines[i]||'';
+    cont.appendChild(c);wheelCards.push(c);
+    const tick=document.createElement('div');tick.className='wt';if(i===0)tick.classList.add('active');nav.appendChild(tick);
+  }
+  updateWheelRotation();
+}
+function updateWheelRotation(){
+  wheelCards.forEach((c,i)=>{
+    const diff=i-wheelCurrent,angle=diff*WHEEL_ANGLE_PER,rad=angle*Math.PI/180;
+    const y=Math.sin(rad)*WHEEL_RADIUS,z=Math.cos(rad)*WHEEL_RADIUS-WHEEL_RADIUS;
+    const absDiff=Math.abs(diff),opacity=absDiff<.5?1:Math.max(0,1-absDiff*.28);
+    c.style.transform=`translateY(${y.toFixed(2)}px) translateZ(${z.toFixed(2)}px) rotateX(${-angle.toFixed(2)}deg)`;
+    c.style.opacity=opacity.toFixed(3);
+    c.classList.toggle('is-current',i===wheelCurrent);
+  });
+  const ticks=$('wheelRightNav').querySelectorAll('.wt');
+  ticks.forEach((tk,k)=>{tk.classList.remove('active');if(k===wheelCurrent)tk.classList.add('active')});
+  $('wheelNum').textContent=(wheelCurrent+1)+' / 7';
+  $('wheelHint').textContent=(wheelCurrent===6)?'↑ 继续上滑 / 滚轮 · 有惊喜 ↑':'↑ 向上滑动 / 滚轮继续';
+}
+function showWheel(){
+  buildWheel();wheelCurrent=0;wheelFinished=false;wheelSceneLocked=false;
+  const ws=$('wheelStage');ws.classList.remove('hide');updateWheelRotation();
+  $('wheelScene').classList.add('show');
+  wheelSceneLocked=true;setTimeout(()=>wheelSceneLocked=false,900);
+}
+function hideWheel(){$('wheelScene').classList.remove('show');$('wheelStage').classList.remove('hide');wheelCurrent=0;wheelFinished=false;wheelSceneLocked=false}
+function wheelNext(){if(wheelSceneLocked||wheelFinished)return;if(wheelCurrent<6){wheelCurrent++;updateWheelRotation();wheelSceneLocked=true;setTimeout(()=>wheelSceneLocked=false,420)}else wheelFinish()}
+function wheelPrev(){if(wheelSceneLocked||wheelFinished)return;if(wheelCurrent>0){wheelCurrent--;updateWheelRotation();wheelSceneLocked=true;setTimeout(()=>wheelSceneLocked=false,420)}}
+function wheelFinish(){if(wheelFinished)return;wheelFinished=true;wheelSceneLocked=true;$('wheelStage').classList.add('hide');setTimeout(()=>$('wheelScene').classList.remove('show'),700);setTimeout(showBlessing,1000)}
+let wStartY=0,wStartX=0,wLock=0;
+const wStage=$('wheelStage');
+wStage.addEventListener('touchstart',e=>{if(e.touches.length!==1)return;wStartY=e.touches[0].clientY;wStartX=e.touches[0].clientX},{passive:true});
+wStage.addEventListener('touchend',e=>{if(e.changedTouches.length!==1)return;const dy=wStartY-e.changedTouches[0].clientY,dx=Math.abs(wStartX-e.changedTouches[0].clientX);if(dx>Math.abs(dy))return;if(dy>40)wheelNext();else if(dy<-40)wheelPrev()},{passive:true});
+wStage.addEventListener('wheel',e=>{e.preventDefault();if(wLock)return;wLock=1;setTimeout(()=>wLock=0,320);if(e.deltaY>0)wheelNext();else wheelPrev()},{passive:false});
+$('wheelRightNav').addEventListener('click',e=>{if(wheelSceneLocked||wheelFinished)return;if(!e.target.classList.contains('wt'))return;const idx=Array.from($('wheelRightNav').children).indexOf(e.target);if(idx>=0){wheelCurrent=idx;updateWheelRotation()}});
+
+/* ==================== 祝福视频 ==================== */
+let blessingFinished=false,blessingTimer=null;
+function applyBlessing(){
+  const vw=$('blessingVideoWrap');vw.innerHTML='';vw.classList.remove('portrait');
+  if(blessing.video){
+    const box=createAutoVideoEnded(mediaSrc(blessing.video),()=>{setTimeout(blessingFinish,700)});
+    const v=box.querySelector('video');
+    fitVideo(vw,v);
+    /* 用户点了播放才开始计时；放完自动进入下一页 */
+    v.addEventListener('play',()=>{onVideoDuration(v,d=>{clearTimeout(blessingTimer);blessingTimer=setTimeout(blessingFinish,(d+4)*1000)})},{once:true});
+    vw.appendChild(box);
+  }
+  else vw.innerHTML='<div class="blessing-video-empty">（可在后台添加祝福视频）</div>';
+}
+function showBlessing(){
+  applyBlessing();blessingFinished=false;
+  $('blessingWrap').classList.remove('hide');$('blessingScene').classList.add('show');
+  clearTimeout(blessingTimer);
+  /* 没有视频才自动往下走；有视频就等用户点播放或点空白处 */
+  if(!blessing.video)blessingTimer=setTimeout(blessingFinish,15000);
+}
+function blessingFinish(){
+  if(blessingFinished)return;blessingFinished=true;clearTimeout(blessingTimer);
+  $('blessingWrap').classList.add('hide');
+  setTimeout(()=>$('blessingScene').classList.remove('show'),750);
+  setTimeout(showCake,1200);
+}
+function hideBlessing(){stopVideos();$('blessingScene').classList.remove('show');$('blessingWrap').classList.remove('hide');blessingFinished=false;clearTimeout(blessingTimer)}
+$('blessingScene').addEventListener('click',e=>{if(e.target.tagName==='VIDEO')return;if(e.target.closest('.blessing-video-wrap')&&e.target.closest('.blessing-video-wrap').querySelector('video'))return;blessingFinish()});
+$('blessingScene').addEventListener('touchend',e=>{if(e.target.tagName==='VIDEO')return;if(e.target.closest('.blessing-video-wrap')&&e.target.closest('.blessing-video-wrap').querySelector('video'))return;e.preventDefault();blessingFinish()},{passive:false});
+
+/* ==================== 蛋糕 ==================== */
+let cakeFinished=false,cakeTimer=null;
+function applyCake(){
+  $('cakeTitle').textContent=cake.title||DEFAULT_CAKE.title;
+  const vw=$('cakeVideoWrap');vw.innerHTML='';vw.classList.remove('portrait');
+  if(cake.video){
+    const box=createAutoVideoEnded(mediaSrc(cake.video),()=>{setTimeout(cakeFinish,700)});
+    const v=box.querySelector('video');
+    fitVideo(vw,v);
+    v.addEventListener('play',()=>{onVideoDuration(v,d=>{clearTimeout(cakeTimer);cakeTimer=setTimeout(cakeFinish,(d+4)*1000)})},{once:true});
+    vw.appendChild(box);
+  }
+  else vw.innerHTML='<div class="cake-video-empty">（可在后台添加视频）</div>';
+}
+function showCake(){
+  applyCake();cakeFinished=false;$('cakeWrap').classList.remove('hide');$('cakeScene').classList.add('show');
+  clearTimeout(cakeTimer);
+  if(!cake.video)cakeTimer=setTimeout(cakeFinish,14000);
+}
+function cakeFinish(){
+  if(cakeFinished)return;cakeFinished=true;clearTimeout(cakeTimer);
+  $('cakeWrap').classList.add('hide');
+  setTimeout(()=>$('cakeScene').classList.remove('show'),750);
+  setTimeout(playHeartBurst,1200);
+}
+function hideCake(){stopVideos();$('cakeScene').classList.remove('show');$('cakeWrap').classList.remove('hide');cakeFinished=false;clearTimeout(cakeTimer)}
+$('cakeScene').addEventListener('click',e=>{if(e.target.tagName==='VIDEO')return;if(e.target.closest('.cake-video-wrap')&&e.target.closest('.cake-video-wrap').querySelector('video'))return;cakeFinish()});
+$('cakeScene').addEventListener('touchend',e=>{if(e.target.tagName==='VIDEO')return;if(e.target.closest('.cake-video-wrap')&&e.target.closest('.cake-video-wrap').querySelector('video'))return;e.preventDefault();cakeFinish()},{passive:false});
+
+/* ==================== 爱心爆炸 ==================== */
+function playHeartBurst(){
+  $('heartBurst').classList.remove('burst');$('heartBurst').classList.add('show');
+  setTimeout(()=>{heartBurstParticles();$('flashOverlay').classList.remove('flash');void $('flashOverlay').offsetWidth;$('flashOverlay').classList.add('flash');$('heartBurst').classList.add('burst')},950);
+  setTimeout(()=>$('heartBurst').classList.remove('show','burst'),2300);
+  setTimeout(()=>{$('final').classList.add('show');finalShown=true},2300);
+}
+function hideHeart(){$('heartBurst').classList.remove('show','burst');$('flashOverlay').classList.remove('flash')}
+
+document.addEventListener('keydown',e=>{
+  if($('letterScene').classList.contains('show')){if(e.key==='ArrowUp'||e.key==='ArrowLeft')prevPage();else if(e.key==='ArrowDown'||e.key==='ArrowRight'||e.key===' '){e.preventDefault();nextPage()}else if(e.key==='Enter'&&!letterOpened)openEnvelope();return}
+  if($('familyScene').classList.contains('show')){if(e.key==='ArrowUp'||e.key===' '){e.preventDefault();hideFamily();showWheel()}return}
+  if($('wheelScene').classList.contains('show')){if(e.key==='ArrowUp'||e.key==='ArrowLeft')wheelPrev();else if(e.key==='ArrowDown'||e.key==='ArrowRight'||e.key===' '){e.preventDefault();wheelNext()}else if(e.key==='Enter')wheelFinish();return}
+  if($('albumScene').classList.contains('show')){if(e.key==='Escape'){closeAlbumView();return}if(e.key==='ArrowUp'||e.key===' '){e.preventDefault();albumNext()}return}
+  if($('blessingScene').classList.contains('show')){if(e.key==='Enter'||e.key===' '){e.preventDefault();blessingFinish()}return}
+  if($('cakeScene').classList.contains('show')){if(e.key==='Enter'||e.key===' '){e.preventDefault();cakeFinish()}}
+});
+
+/* ==================== 全局进度条 ==================== */
+async function preloadAllResources(){
+  const tasks=[];let total=0,loaded=0;
+  const fill=$('progressFill'),text=$('progressText');
+  const update=()=>{const pct=total?Math.round(loaded/total*100):100;fill.style.width=pct+'%';text.textContent='资源加载中 '+pct+'%'};
+
+  const mediaList=[];
+  curPhotos().forEach(p=>{if(p)mediaList.push(p)});
+  if(letter.p3Video)mediaList.push(letter.p3Video);
+  if(family.cards)family.cards.forEach(c=>{if(c.photo)mediaList.push(c.photo)});
+  if(blessing.video)mediaList.push(blessing.video);
+  if(cake.video)mediaList.push(cake.video);
+  collectAlbum().forEach(it=>{if(it.src&&it.src.indexOf('data:')!==0)mediaList.push(it.src)});
+  const unique=[...new Set(mediaList)];
+  total=unique.length+1;
+  update();
+
+  unique.forEach(src=>{
+    const p=new Promise(res=>{
+      const realSrc=mediaSrc(src);
+      const kind=mediaKind(src);
+      if(kind==='video'){
+        const v=document.createElement('video');v.preload='auto';v.muted=true;
+        v.onloadeddata=()=>{loaded++;update();res()};
+        v.onerror=()=>{loaded++;update();res()};
+        v.src=realSrc;setTimeout(res,8000);
+      }else{
+        const img=new Image();
+        img.onload=()=>{loaded++;update();res()};
+        img.onerror=()=>{loaded++;update();res()};
+        img.src=realSrc;setTimeout(res,8000);
+      }
+    });
+    tasks.push(p);
+  });
+
+  /* 音乐：如果有 base64，直接标记完成；否则检测本地文件 */
+  const musicP=new Promise(async res=>{
+    if(INJECTED_BGM){bgmDataUrl=INJECTED_BGM;loaded++;update();res();return}
+    const stored=await loadBGMFromDB();
+    if(stored&&stored.data){bgmDataUrl=stored.data;musicReady=true;updateMusicStatusBox();loaded++;update();res();return}
+    let i=0;
+    const tryNext=()=>{
+      if(i>=MUSIC_SOURCES.length){loaded++;update();res();return}
+      const src=MUSIC_SOURCES[i];
+      const t=new Audio();t.preload='auto';t.src=src;
+      const timer=setTimeout(()=>{i++;tryNext()},2500);
+      t.addEventListener('canplaythrough',()=>{clearTimeout(timer);currentMusicIdx=i;musicReady=true;loaded++;update();res()},{once:true});
+      t.addEventListener('error',()=>{clearTimeout(timer);i++;tryNext()},{once:true});
+      t.load();
+    };
+    tryNext();
+  });
+  tasks.push(musicP);
+
+  await Promise.all(tasks);
+  fill.style.width='100%';
+  text.textContent='✅ 资源就绪';
+  $('enterBtn').classList.add('ready');
+}
+
+/* ==================== 进入按钮 ==================== */
+let hasEntered=false;
+function enterNow(){
+  if(hasEntered)return;hasEntered=true;
+  try{playMusicNow()}catch(e){}
+  $('startPanel').classList.add('hide');
+  setTimeout(()=>{$('startPanel').style.display='none'},900);
+  try{startAnim()}catch(e){console.error(e);hasEntered=false}
+}
+$('enterBtn').addEventListener('click',enterNow,false);
+$('enterBtn').addEventListener('touchend',e=>{e.preventDefault();enterNow()},{passive:false});
+$('enterBtn').onclick=enterNow;
+
+/* ==================== 管理员 ==================== */
+const openModal=m=>m.classList.add('show');
+const closeModal=m=>m.classList.remove('show');
+$('adminBtn').addEventListener('click',()=>{$('loginUser').value='';$('loginPass').value='';$('loginErr').textContent='';openModal($('loginModal'))});
+$('loginCancel').addEventListener('click',()=>closeModal($('loginModal')));
+$('loginOk').addEventListener('click',()=>{
+  const u=$('loginUser').value.trim(),p=$('loginPass').value;
+  if(u===ADMIN_USER&&p===ADMIN_PASS){closeModal($('loginModal'));openEdit()}
+  else $('loginErr').textContent='账号或密码错误';
+});
+document.querySelectorAll('#loginModal input').forEach(el=>el.addEventListener('keydown',e=>{if(e.key==='Enter')$('loginOk').click()}));
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    const target=tab.getAttribute('data-tab');
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tabPanel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelector(`.tabPanel[data-panel="${target}"]`).classList.add('active');
+  });
+});
+
+let draftMsgs=[],draftPhotos=[];
+function openEdit(){
+  draftMsgs=curMessages().slice();draftPhotos=curPhotos().slice();
+  while(draftMsgs.length<DEFAULT_MESSAGES.length)draftMsgs.push(DEFAULT_MESSAGES[draftMsgs.length]||'');
+  while(draftPhotos.length<DEFAULT_MESSAGES.length)draftPhotos.push(null);
+  buildEditList();fillLetterEditor();fillFamilyEditor();fillWheelEditor();fillBlessingEditor();fillCakeEditor();renderVideoList();fillFinalEditor();
+  updateSiteFolderBox();refreshBoundDir();
+  openModal($('editModal'));
+}
+function buildEditList(){
+  const list=$('editList');list.innerHTML='';
+  const total=Math.max(DEFAULT_MESSAGES.length,draftMsgs.length);
+  for(let i=0;i<total;i++){
+    const item=document.createElement('div');item.className='editItem';
+    item.innerHTML=`<div class="idx">${i+1}</div><div class="fields"><textarea rows="2" placeholder="祝福语 ${i+1}">${esc(draftMsgs[i]||'')}</textarea></div><div class="thumb"></div>`;
+    const ta=item.querySelector('textarea');
+    ta.addEventListener('input',()=>{draftMsgs[i]=ta.value});
+    const thumb=item.querySelector('.thumb');
+    const render=()=>{
+      thumb.innerHTML='';
+      const p=draftPhotos[i];
+      if(p){
+        const k=mediaKind(p),s=mediaSrc(p);
+        if(k==='video'){const v=document.createElement('video');v.src=s;v.muted=true;v.autoplay=true;v.loop=true;v.playsInline=true;thumb.appendChild(v)}
+        else{const img=document.createElement('img');img.src=s;thumb.appendChild(img)}
+      }else{const sp=document.createElement('span');sp.className='thumbEmpty';sp.innerHTML='点击<br>上传';thumb.appendChild(sp)}
+    };
+    render();
+    thumb.addEventListener('click',()=>pickMedia(u=>{draftPhotos[i]=u;render()},'popup'+i));
+    list.appendChild(item);
+  }
+}
+/* 4MB 以内的照片按原图保存（不压缩），只对超大图做缩放 */
+const RAW_MEDIA_LIMIT=4*1024*1024;
+/* 现在整个网站用了哪些媒体（用来判断重复） */
+function usedMediaSlots(){
+  const out=[];
+  if(letter.p3Video)out.push({key:'letter',label:'信件第 3 页',src:letter.p3Video});
+  if(blessing.video)out.push({key:'blessing',label:'祝福妈妈生日快乐',src:blessing.video});
+  if(cake.video)out.push({key:'cake',label:'蛋糕页',src:cake.video});
+  (family.cards||[]).forEach((c,i)=>{if(c.photo)out.push({key:'family'+i,label:(c.title||('家人祝福 '+(i+1))),src:c.photo})});
+  curPhotos().forEach((p,i)=>{if(p)out.push({key:'popup'+i,label:'弹窗 '+(i+1),src:p})});
+  return out;
+}
+function duplicateOf(src,selfKey){
+  if(!src)return null;
+  const hit=usedMediaSlots().filter(x=>x.key!==selfKey&&x.src===src);
+  return hit.length?hit[0]:null;
+}
+function pickMedia(cb,selfKey){
+  const input=document.createElement('input');input.type='file';input.accept='image/*,video/*';input.style.cssText='position:fixed;left:-9999px';document.body.appendChild(input);
+  input.addEventListener('change',()=>{
+    const f=input.files&&input.files[0];
+    try{document.body.removeChild(input)}catch(e){}
+    if(!f)return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const dataUrl=e.target.result;
+      const dup=duplicateOf(dataUrl,selfKey);
+      if(dup){toast('这段媒体已经用在「'+dup.label+'」了，同一段不重复插入');return}
+      if(f.type.indexOf('image')===0&&f.size>RAW_MEDIA_LIMIT){
+        const img=new Image();
+        img.onload=()=>{let w=img.width,h=img.height;if(w>1600){h=Math.round(h*1600/w);w=1600}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);cb(c.toDataURL('image/jpeg',.9))};
+        img.onerror=()=>cb(dataUrl);
+        img.src=dataUrl;
+      }else cb(dataUrl);
+    };
+    reader.readAsDataURL(f);
+  });
+  input.click();
+}
+
+$('editReset').addEventListener('click',()=>{if(!confirm('恢复默认弹窗内容？'))return;draftMsgs=DEFAULT_MESSAGES.slice();draftPhotos=new Array(DEFAULT_MESSAGES.length).fill(null);buildEditList();toast('已恢复，点保存生效')});
+$('editCancel').addEventListener('click',()=>closeModal($('editModal')));
+$('editSave').addEventListener('click',()=>{
+  const nd={messages:draftMsgs.slice(),photos:draftPhotos.map(p=>p||null)};
+  try{localStorage.setItem(K.data,JSON.stringify(nd));data=nd;toast('弹窗已保存')}
+  catch(e){try{const ot={messages:draftMsgs.slice(),photos:new Array(draftMsgs.length).fill(null)};localStorage.setItem(K.data,JSON.stringify(ot));data=ot;toast('媒体过大，仅保存文字')}catch(e2){toast('保存失败')}}
+});
+
+function fillLetterEditor(){
+  $('ltP1Title').value=letter.p1Title||'';$('ltP1Body').value=letter.p1Body||'';
+  $('ltP2Title').value=letter.p2Title||'';$('ltP2Cells').value=(letter.p2Cells||[]).join('\n');
+  $('ltP3Title').value=letter.p3Title||'';
+  if(letter.p3Video&&letter.p3Video.indexOf('data:')!==0)$('ltP3Video').value=letter.p3Video;
+  else{$('ltP3Video').value='';if(letter.p3Video)$('ltP3Video').placeholder='（已导入）'}
+  $('ltP3Body').value=letter.p3Body||'';
+}
+$('ltP3VideoPick').addEventListener('click',()=>pickMedia(u=>{window.__ltVideo=u;$('ltP3Video').value='';$('ltP3Video').placeholder='（已导入视频）';toast('已导入，点保存')},'letter'));
+$('ltP3VideoClear').addEventListener('click',()=>{window.__ltVideo='';$('ltP3Video').value='';$('ltP3Video').placeholder='可留空';toast('已清除')});
+$('ltReset').addEventListener('click',()=>{if(!confirm('恢复默认信件？'))return;letter=JSON.parse(JSON.stringify(DEFAULT_LETTER));fillLetterEditor();window.__ltVideo=undefined;toast('已恢复，点保存')});
+$('ltCancel').addEventListener('click',()=>closeModal($('editModal')));
+$('ltSave').addEventListener('click',()=>{
+  const cells=$('ltP2Cells').value.split('\n').map(s=>s.replace(/\r$/,''));
+  while(cells.length<6)cells.push('');cells.length=6;
+  let video='';
+  if(window.__ltVideo!==undefined){video=window.__ltVideo;window.__ltVideo=undefined}
+  else if($('ltP3Video').value.trim())video=$('ltP3Video').value.trim();
+  else video=letter.p3Video||'';
+  letter={p1Title:$('ltP1Title').value||DEFAULT_LETTER.p1Title,p1Body:$('ltP1Body').value||'',p2Title:$('ltP2Title').value||DEFAULT_LETTER.p2Title,p2Cells:cells,p3Title:$('ltP3Title').value||DEFAULT_LETTER.p3Title,p3Video:video,p3Body:$('ltP3Body').value||''};
+  try{localStorage.setItem(K.letter,JSON.stringify(letter));applyLetter();toast('信件已保存')}
+  catch(e){try{const l2=JSON.parse(JSON.stringify(letter));if(l2.p3Video&&l2.p3Video.indexOf('data:')===0)l2.p3Video='';localStorage.setItem(K.letter,JSON.stringify(l2));letter=l2;applyLetter();toast('视频过大，仅保存文字')}catch(e2){toast('保存失败')}}
+});
+
+function fillFamilyEditor(){
+  const list=$('familyEditList');list.innerHTML='';
+  const cards=family.cards||DEFAULT_FAMILY.cards;
+  for(let i=0;i<6;i++){
+    const c=cards[i]||{title:'',photo:'',text:''};
+    const canMedia=(i<3);
+    const item=document.createElement('div');item.className='editItem';
+    const titleHTML=`<div style="font-size:11.5px;color:rgba(255,255,255,.5);margin-bottom:6px">${esc(c.title||'')}${canMedia?'（可插入视频/照片）':'（仅祝福语）'}</div>`;
+    item.innerHTML=`<div class="idx">${i+1}</div><div class="fields">${titleHTML}<textarea rows="2" placeholder="祝福语">${esc(c.text||'')}</textarea></div>${canMedia?'<div class="thumb"></div>':''}`;
+    const ta=item.querySelector('textarea');
+    ta.addEventListener('input',()=>{cards[i].text=ta.value});
+    if(canMedia){
+      const thumb=item.querySelector('.thumb');
+      const render=()=>{
+        thumb.innerHTML='';
+        const p=cards[i].photo;
+        if(p){
+          const k=mediaKind(p),s=mediaSrc(p);
+          if(k==='video'){const v=document.createElement('video');v.src=s;v.muted=true;v.autoplay=true;v.loop=true;v.playsInline=true;thumb.appendChild(v)}
+          else{const img=document.createElement('img');img.src=s;thumb.appendChild(img)}
+        }else{const sp=document.createElement('span');sp.className='thumbEmpty';sp.innerHTML='点击<br>上传';thumb.appendChild(sp)}
+      };
+      render();
+      thumb.addEventListener('click',()=>pickMedia(u=>{cards[i].photo=u;render()},'family'+i));
+    }
+    list.appendChild(item);
+  }
+}
+$('fmReset').addEventListener('click',()=>{if(!confirm('恢复默认家人祝福？'))return;family=JSON.parse(JSON.stringify(DEFAULT_FAMILY));fillFamilyEditor();toast('已恢复，点保存')});
+$('fmCancel').addEventListener('click',()=>closeModal($('editModal')));
+$('fmSave').addEventListener('click',()=>{
+  try{localStorage.setItem(K.family,JSON.stringify(family));applyFamily();toast('家人祝福已保存')}
+  catch(e){try{const f2=JSON.parse(JSON.stringify(family));f2.cards.forEach(c=>{if(c.photo&&c.photo.indexOf('data:')===0)c.photo=''});localStorage.setItem(K.family,JSON.stringify(f2));family=f2;applyFamily();toast('媒体过大，仅保存文字')}catch(e2){toast('保存失败')}}
+});
+
+function fillWheelEditor(){$('whTitle').value=wheel.title||'';$('whBody').value=(wheel.lines||[]).join('\n')}
+$('whReset').addEventListener('click',()=>{if(!confirm('恢复默认轮盘？'))return;$('whTitle').value=DEFAULT_WHEEL.title;$('whBody').value=DEFAULT_WHEEL.lines.join('\n');toast('已恢复，点保存')});
+$('whCancel').addEventListener('click',()=>closeModal($('editModal')));
+$('whSave').addEventListener('click',()=>{
+  const lines=$('whBody').value.split('\n').map(s=>s.replace(/\r$/,''));
+  while(lines.length<7)lines.push('');lines.length=7;
+  wheel={title:$('whTitle').value||DEFAULT_WHEEL.title,lines};
+  try{localStorage.setItem(K.wheel,JSON.stringify(wheel));toast('轮盘已保存')}catch(e){toast('保存失败')}
+});
+
+function fillBlessingEditor(){
+  if(blessing.video&&blessing.video.indexOf('data:')!==0)$('blVideo').value=blessing.video;
+  else{$('blVideo').value='';if(blessing.video)$('blVideo').placeholder='（已导入）'}
+}
+$('blVideoPick').addEventListener('click',()=>pickMedia(u=>{window.__blV=u;$('blVideo').value='';$('blVideo').placeholder='（已导入）';toast('已导入，点保存')},'blessing'));
+$('blVideoClear').addEventListener('click',()=>{window.__blV='';$('blVideo').value='';$('blVideo').placeholder='可留空';toast('已清除')});
+$('blReset').addEventListener('click',()=>{if(!confirm('恢复默认？'))return;$('blVideo').value='';window.__blV=undefined;toast('已恢复，点保存')});
+$('blCancel').addEventListener('click',()=>closeModal($('editModal')));
+$('blSave').addEventListener('click',()=>{
+  let video='';
+  if(window.__blV!==undefined){video=window.__blV;window.__blV=undefined}
+  else if($('blVideo').value.trim())video=$('blVideo').value.trim();
+  else video=blessing.video||'';
+  blessing={title:'祝福妈妈生日快乐',video};
+  try{localStorage.setItem(K.blessing,JSON.stringify(blessing));applyBlessing();toast('祝福视频已保存')}
+  catch(e){try{const b2=JSON.parse(JSON.stringify(blessing));if(b2.video&&b2.video.indexOf('data:')===0)b2.video='';localStorage.setItem(K.blessing,JSON.stringify(b2));blessing=b2;applyBlessing();toast('视频过大，仅保存标题')}catch(e2){toast('保存失败')}}
+});
+
+function fillCakeEditor(){
+  $('ckTitle').value=cake.title||'';
+  if(cake.video&&cake.video.indexOf('data:')!==0)$('ckVideo').value=cake.video;
+  else{$('ckVideo').value='';if(cake.video)$('ckVideo').placeholder='（已导入）'}
+}
+$('ckVideoPick').addEventListener('click',()=>pickMedia(u=>{window.__ckV=u;$('ckVideo').value='';$('ckVideo').placeholder='（已导入）';toast('已导入，点保存')},'cake'));
+$('ckVideoClear').addEventListener('click',()=>{window.__ckV='';$('ckVideo').value='';$('ckVideo').placeholder='可留空';toast('已清除')});
+$('ckReset').addEventListener('click',()=>{if(!confirm('恢复默认蛋糕？'))return;$('ckTitle').value=DEFAULT_CAKE.title;$('ckVideo').value='';window.__ckV=undefined;toast('已恢复，点保存')});
+$('ckCancel').addEventListener('click',()=>closeModal($('editModal')));
+$('ckSave').addEventListener('click',()=>{
+  let video='';
+  if(window.__ckV!==undefined){video=window.__ckV;window.__ckV=undefined}
+  else if($('ckVideo').value.trim())video=$('ckVideo').value.trim();
+  else video=cake.video||'';
+  cake={title:$('ckTitle').value||DEFAULT_CAKE.title,video};
+  try{localStorage.setItem(K.cake,JSON.stringify(cake));applyCake();toast('蛋糕已保存')}
+  catch(e){try{const c2=JSON.parse(JSON.stringify(cake));if(c2.video&&c2.video.indexOf('data:')===0)c2.video='';localStorage.setItem(K.cake,JSON.stringify(c2));cake=c2;applyCake();toast('视频过大，仅保存标题')}catch(e2){toast('保存失败')}}
+});
+
+/* ==================== 导出为本地网站文件夹 ==================== */
+function dataURLToBlob(u){
+  const arr=u.split(','),mime=arr[0].match(/:(.*?);/)[1];
+  const bstr=atob(arr[1]);let n=bstr.length;const u8=new Uint8Array(n);
+  while(n--)u8[n]=bstr.charCodeAt(n);
+  return new Blob([u8],{type:mime});
+}
+function getExt(u){
+  const m=u.match(/^data:(\w+)\/([\w.+-]+)/);if(!m)return'bin';
+  const t=m[2].toLowerCase();
+  if(t==='jpeg')return'jpg';
+  if(t==='quicktime')return'mov';
+  if(t==='svg+xml')return'svg';
+  return t;
+}
+function writeFile(dir,name,u){
+  return dir.getFileHandle(name,{create:true}).then(fh=>fh.createWritable().then(w=>w.write(dataURLToBlob(u)).then(()=>w.close())));
+}
+function generateExportHTML(mediaMap,opts){
+  const clone=document.documentElement.cloneNode(true);
+  const s=clone.querySelector('#stage');if(s)s.innerHTML='';
+  ['loginModal','editModal'].forEach(id=>{const m=clone.querySelector('#'+id);if(m)m.classList.remove('show')});
+  ['letterScene','familyScene','albumScene','wheelScene','blessingScene','cakeScene','final'].forEach(id=>{const el=clone.querySelector('#'+id);if(el)el.classList.remove('show')});
+  const env=clone.querySelector('#envelopeWrap');if(env){env.classList.remove('open','hide');env.removeAttribute('style')}
+  const pw=clone.querySelector('#paperWrap');if(pw)pw.classList.remove('show');
+  clone.querySelectorAll('#paperStage .paper').forEach((p,i)=>p.setAttribute('data-state',i===0?'cur':'next'));
+  const ws=clone.querySelector('#wheelStage');if(ws)ws.classList.remove('hide');
+  const wc=clone.querySelector('#wheelContainer');if(wc)wc.innerHTML='';
+  const wrn=clone.querySelector('#wheelRightNav');if(wrn)wrn.innerHTML='';
+  const fg=clone.querySelector('#familyGrid');if(fg)fg.innerHTML='';
+  const bw=clone.querySelector('#blessingWrap');if(bw)bw.classList.remove('hide');
+  const bvw=clone.querySelector('#blessingVideoWrap');if(bvw)bvw.innerHTML='';
+  const cw=clone.querySelector('#cakeWrap');if(cw)cw.classList.remove('hide');
+  const cvw=clone.querySelector('#cakeVideoWrap');if(cvw)cvw.innerHTML='';
+
+  const el1=clone.querySelector('#editList');if(el1)el1.innerHTML='';
+  const el2=clone.querySelector('#familyEditList');if(el2)el2.innerHTML='';
+  const ag=clone.querySelector('#albumGrid');if(ag)ag.innerHTML='';
+  const av=clone.querySelector('#albumView');if(av){av.classList.remove('show');av.innerHTML=''}
+  const pvw=clone.querySelector('#p3VideoWrap');
+  if(pvw)pvw.innerHTML='<div class="video-continue" id="p3Continue">点击继续 →</div>';
+  const eb=clone.querySelector('#enterBtn');if(eb)eb.classList.add('ready');
+  if(eb){eb.style.opacity='';eb.style.pointerEvents=''}
+  const pf=clone.querySelector('#progressFill');if(pf)pf.style.width='100%';
+  const pt=clone.querySelector('#progressText');if(pt)pt.textContent='✅ 资源就绪';
+  /* 媒体一律指向文件夹里的真实文件（photos/、videos/），index.html 不再重复塞 base64 */
+  const M=s=>(s&&mediaMap&&mediaMap[s])?mediaMap[s]:s;
+  const injected={
+    data:{messages:curMessages(),photos:curPhotos().map(p=>p?M(p):null)},
+    letter:Object.assign({},letter,{p3Video:M(letter.p3Video)}),
+    family:{cards:(family.cards||[]).map(c=>Object.assign({},c,{photo:M(c.photo)}))},
+    wheel:wheel,
+    blessing:Object.assign({},blessing,{video:M(blessing.video)}),
+    cake:Object.assign({},cake,{video:M(cake.video)}),
+    final:finalCfg
+  };
+  const head=clone.querySelector('head');
+  if(!clone.querySelector('script[src*="album.js"]')){const at=document.createElement('script');at.src='photos/album.js';head.appendChild(at)}
+  /* 音乐写进 music/ 文件夹，默认不再把 base64 塞进网页 */
+  const bgmToInject=(opts&&opts.noBgm)?null:(bgmDataUrl||INJECTED_BGM);
+  if(bgmToInject){
+    const s0=document.createElement('script');
+    s0.textContent='window.__MAMA_BGM__='+JSON.stringify(bgmToInject)+';';
+    head.insertBefore(s0,head.firstChild);
+  }
+  const s1=document.createElement('script');
+  s1.textContent='window.__MAMA_DATA__='+JSON.stringify(injected)+';';
+  head.insertBefore(s1,head.firstChild);
+  const s2=document.createElement('script');
+  s2.textContent='window.__MAMA_MEDIA__={};';
+  head.insertBefore(s2,s1.nextSibling);
+  return '<!DOCTYPE html>\n'+clone.outerHTML;
+}
+/* ==================== 管理员：视频清单（位置 / 简介 / 文件） ==================== */
+const DEFAULT_FINAL_CFG={cover:'妈妈，生日快乐',f1:'妈妈，生日快乐！',f2:'愿您岁岁平安，年年欢喜 ❤️',f3:'制作人：sunmou'};
+let finalCfg=load('final',DEFAULT_FINAL_CFG);
+function applyFinalCfg(){
+  if(!finalCfg||typeof finalCfg!=='object')finalCfg=JSON.parse(JSON.stringify(DEFAULT_FINAL_CFG));
+  if($('spTitle'))$('spTitle').textContent=finalCfg.cover||DEFAULT_FINAL_CFG.cover;
+  if($('f1'))$('f1').textContent=finalCfg.f1||DEFAULT_FINAL_CFG.f1;
+  if($('f2'))$('f2').textContent=finalCfg.f2||DEFAULT_FINAL_CFG.f2;
+  if($('f3'))$('f3').textContent=finalCfg.f3||DEFAULT_FINAL_CFG.f3;
+}
+function fillFinalEditor(){
+  $('fnCover').value=finalCfg.cover||'';$('fnF1').value=finalCfg.f1||'';
+  $('fnF2').value=finalCfg.f2||'';$('fnF3').value=finalCfg.f3||'';
+}
+$('fnReset').addEventListener('click',()=>{if(!confirm('恢复默认封面/结尾文字？'))return;finalCfg=JSON.parse(JSON.stringify(DEFAULT_FINAL_CFG));fillFinalEditor();toast('已恢复，点保存')});
+$('fnCancel').addEventListener('click',()=>closeModal($('editModal')));
+$('fnSave').addEventListener('click',()=>{
+  finalCfg={cover:$('fnCover').value,f1:$('fnF1').value,f2:$('fnF2').value,f3:$('fnF3').value};
+  try{localStorage.setItem(K.final,JSON.stringify(finalCfg));applyFinalCfg();toast('封面/结尾文字已保存')}catch(e){toast('保存失败')}
+});
+
+const VIDEO_SLOTS=[
+  {key:'letter',no:'①',pos:'信件第 3 页',where:'「妈妈，我想对您说」正文上方的视频框',
+   desc:'信翻到第三页时出现；点一下才播放，播完出现「点击继续 →」',
+   get:()=>letter.p3Video,
+   set:v=>{letter.p3Video=v;try{localStorage.setItem(K.letter,JSON.stringify(letter))}catch(e){}applyLetter();setupLetterVideo()}},
+  {key:'blessing',no:'②',pos:'祝福妈妈生日快乐（整屏）',where:'轮盘结束后的整屏视频',
+   desc:'点一下才播放；播完自动进入下一页，点空白处可跳过',
+   get:()=>blessing.video,
+   set:v=>{blessing=Object.assign({},blessing,{video:v});try{localStorage.setItem(K.blessing,JSON.stringify(blessing))}catch(e){}applyBlessing()}},
+  {key:'cake',no:'③',pos:'蛋糕页',where:'点蜡烛的蛋糕里的视频框',
+   desc:'点一下才播放；播完自动进入结尾',
+   get:()=>cake.video,
+   set:v=>{cake=Object.assign({},cake,{video:v});try{localStorage.setItem(K.cake,JSON.stringify(cake))}catch(e){}applyCake()}}
+];
+function mediaLabel(u){
+  if(!u)return '（未插入）';
+  if(u.indexOf('data:')===0)return '浏览器里选的'+mediaKind(u)+'，约 '+(u.length*0.75/1024/1024).toFixed(2)+' MB（保存后写成 videos/ 或 photos/ 真实文件）';
+  return u;
+}
+function renderVideoList(){
+  const box=$('videoList');if(!box)return;box.innerHTML='';
+  VIDEO_SLOTS.forEach(slot=>{
+    const src=slot.get();
+    const item=document.createElement('div');item.className='editItem';
+    item.innerHTML='<div class="idx">'+slot.no+'</div><div class="fields">'
+      +'<div style="font-size:14px;font-weight:800;color:#ffd9ec;margin-bottom:5px">'+esc(slot.pos)+'</div>'
+      +'<div style="font-size:11.5px;color:rgba(255,255,255,.62);line-height:1.75">'
+      +'📌 位置：'+esc(slot.where)+'<br>📝 简介：'+esc(slot.desc)+'<br>🎬 当前文件：'+esc(mediaLabel(src))+'</div>'
+      +'<div style="display:flex;gap:6px;margin-top:9px;flex-wrap:wrap">'
+      +'<button class="btn small" data-act="pick">更换视频/照片</button>'
+      +'<button class="btn small danger" data-act="clr">清除</button></div>'
+      +'</div><div class="thumb"></div>';
+    const thumb=item.querySelector('.thumb');
+    if(src){
+      const k=mediaKind(src),s=mediaSrc(src);
+      if(k==='video'){const v=document.createElement('video');v.src=s;v.muted=true;v.playsInline=true;v.preload='metadata';thumb.appendChild(v)}
+      else{const im=document.createElement('img');im.src=s;thumb.appendChild(im)}
+    }else{const sp=document.createElement('span');sp.className='thumbEmpty';sp.innerHTML='未插入';thumb.appendChild(sp)}
+    item.querySelector('[data-act="pick"]').addEventListener('click',()=>{
+      pickMedia(u=>{slot.set(u);renderVideoList();toast('已更换「'+slot.pos+'」，记得点最下面的「保存到网站文件夹」')},slot.key);
+    });
+    item.querySelector('[data-act="clr"]').addEventListener('click',()=>{
+      if(!confirm('清除「'+slot.pos+'」的视频？'))return;
+      slot.set('');renderVideoList();toast('已清除，记得点「保存到网站文件夹」');
+    });
+    box.appendChild(item);
+  });
+}
+
+/* ============ 绑定网站文件夹（记住它，以后原地更新，不再新建网站） ============ */
+const SITE_DB='mama_site_db',SITE_STORE='site_store';
+let boundDir=null,boundDirName='',musicFileName='';
+function openSiteDb(){return new Promise((res,rej)=>{const r=indexedDB.open(SITE_DB,1);r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains(SITE_STORE))db.createObjectStore(SITE_STORE)};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function saveDirHandle(h){try{const db=await openSiteDb();return await new Promise((res,rej)=>{const tx=db.transaction(SITE_STORE,'readwrite');tx.objectStore(SITE_STORE).put(h,'site');tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}catch(e){}}
+async function loadDirHandle(){try{const db=await openSiteDb();return await new Promise(res=>{const tx=db.transaction(SITE_STORE,'readonly');const q=tx.objectStore(SITE_STORE).get('site');q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)})}catch(e){return null}}
+/* 还只存在浏览器里、没写进网站文件的内容 */
+function pendingMediaList(){
+  const out=[];
+  const chk=(src,label)=>{if(src&&src.indexOf('data:')===0)out.push(label)};
+  curPhotos().forEach((p,i)=>chk(p,'弹窗照片'+(i+1)));
+  if(letter.p3Video)chk(letter.p3Video,'信件第3页视频');
+  if(family.cards)family.cards.forEach(c=>chk(c.photo,c.title||'家人祝福'));
+  if(blessing.video)chk(blessing.video,'祝福视频');
+  if(cake.video)chk(cake.video,'蛋糕视频');
+  if(bgmDataUrl)out.push('音乐');
+  return out;
+}
+function updateSiteFolderBox(){
+  const box=$('siteFolderBox');if(!box)return;
+  const pend=pendingMediaList();
+  let warn='';
+  if(pend.length){
+    warn='<div class="status empty">⚠ 有 '+pend.length+' 项内容还只在浏览器里：'+esc(pend.slice(0,6).join('、'))+(pend.length>6?' 等':'')+'</div>'
+       +'<div class="info">它们还没写进网站文件，所以手机、别的电脑、上传到网上都看不到 —— 点下面的「保存到网站文件夹」才会写进去</div>';
+  }
+  let body;
+  if(boundDirName)body='<div class="status ok">✅ 已绑定：'+esc(boundDirName)+'</div><div class="info">保存时直接改写这个文件夹里的 index.html，媒体写进 videos / photos / music</div>';
+  else body='<div class="status empty">还没绑定网站文件夹</div><div class="info">点「保存到网站文件夹」，选中这个网站所在的文件夹（例如 妈妈生日快乐网站），以后就记住了</div>';
+  box.innerHTML=warn+body;
+  updateMusicStatusBox();
+}
+async function refreshBoundDir(){
+  try{const h=await loadDirHandle();if(h){boundDir=h;boundDirName=h.name||''}}catch(e){}
+  updateSiteFolderBox();
+}
+async function ensureDir(force){
+  if(!window.showDirectoryPicker){toast('这个浏览器不支持原地保存，请用电脑版 Chrome / Edge 打开 index.html');return null}
+  let h=null;
+  if(!force){
+    h=await loadDirHandle();
+    if(h){try{let p=await h.queryPermission({mode:'readwrite'});if(p!=='granted')p=await h.requestPermission({mode:'readwrite'});if(p!=='granted')h=null}catch(e){h=null}}
+  }
+  if(!h){
+    try{h=await window.showDirectoryPicker({id:'mamaSite',mode:'readwrite'})}
+    catch(e){if(e&&e.name==='AbortError')return null;throw e}
+    /* 校验一下：真正的网站文件夹里应该有 index.html（防止保存进 tools 之类的子文件夹） */
+    let looksRight=false;
+    try{await h.getFileHandle('index.html');looksRight=true}catch(e){}
+    if(!looksRight){
+      const ok=confirm('这个文件夹「'+(h.name||'')+'」里面没有 index.html。\n\n'+
+        '看起来它不是网站文件夹（可能选进了 tools 之类的子文件夹）。\n'+
+        '正确做法：选中网站文件夹本身，例如「妈妈生日快乐网站」。\n\n'+
+        '仍然要保存到这里吗？');
+      if(!ok)return null;
+    }
+    await saveDirHandle(h);
+  }
+  boundDir=h;boundDirName=h.name||'已选文件夹';updateSiteFolderBox();
+  return h;
+}
+/* 把选好的音乐写成 music/真的爱你.xxx 真实文件 */
+async function writeMusicFile(dataUrl,fileName){
+  if(!dataUrl||dataUrl.indexOf('data:')!==0)return '';
+  const dir=boundDir||await loadDirHandle();
+  if(!dir)return '';
+  try{
+    const ext=((fileName||'').match(/\.(mp3|m4a|ogg|wav|mp4|aac|flac)$/i)||[,'mp3'])[1].toLowerCase();
+    const md=await dir.getDirectoryHandle('music',{create:true});
+    const fh=await md.getFileHandle('真的爱你.'+ext,{create:true});
+    const w=await fh.createWritable();await w.write(dataURLToBlob(dataUrl));await w.close();
+    musicFileName='真的爱你.'+ext;
+    console.log('[音乐] 已写入 music/'+musicFileName);
+    return musicFileName;
+  }catch(e){console.warn('[音乐] 写入文件夹失败',e);return ''}
+}
+async function listMusicIn(dir){
+  const out=[];
+  try{const md=await dir.getDirectoryHandle('music',{create:true});
+    for await(const entry of md.entries()){const name=entry[0],handle=entry[1];if(handle.kind==='file'&&/\.(mp3|m4a|ogg|wav|aac|flac|mp4)$/i.test(name))out.push('music/'+name)}
+  }catch(e){}
+  return out.sort();
+}
+function saveToSite(){
+  return ensureDir(false).then(async dir=>{
+    if(!dir)return null;
+    toast('正在写入网站文件夹…');
+    const dirs=await Promise.all([dir.getDirectoryHandle('videos',{create:true}),dir.getDirectoryHandle('photos',{create:true}),dir.getDirectoryHandle('music',{create:true})]);
+    const videoDir=dirs[0],photoDir=dirs[1],musicDir=dirs[2];
+    const mediaMap={};const tasks=[];let counter=0;
+    const addMedia=(src,prefix,idx)=>{
+      if(!src||src.indexOf('data:')!==0)return;
+      if(mediaMap[src])return;
+      const ext=getExt(src),isVideo=(mediaKind(src)==='video');
+      const sub=isVideo?'videos':'photos';
+      const name=(isVideo?'video_':'photo_')+prefix+'_'+idx+'.'+ext;
+      mediaMap[src]=sub+'/'+name;
+      tasks.push(writeFile(isVideo?videoDir:photoDir,name,src));counter++;
+    };
+    curPhotos().forEach((p,i)=>addMedia(p,'popup',i));
+    addMedia(letter.p3Video,'letter',1);
+    if(family.cards)family.cards.forEach((c,i)=>addMedia(c.photo,'family',i));
+    addMedia(blessing.video,'blessing',1);
+    addMedia(cake.video,'cake',1);
+    await Promise.all(tasks);
+    if(bgmDataUrl)await writeMusicFile(bgmDataUrl,musicFileName||'真的爱你.mp3');
+    const musicList=await listMusicIn(dir);
+    const album=collectAlbum().map(it=>({src:mediaMap[it.src]||it.src,type:it.type||mediaKind(it.src),title:it.title||''}));
+    const html=generateExportHTML(mediaMap,{noBgm:true});
+    const hf=await dir.getFileHandle('index.html',{create:true});
+    const hw=await hf.createWritable();await hw.write(html);await hw.close();
+    const af=await photoDir.getFileHandle('album.js',{create:true});
+    const aw=await af.createWritable();
+    await aw.write('window.__MAMA_ALBUM__='+JSON.stringify(album)+';\nwindow.__MAMA_MUSIC__='+JSON.stringify(musicList)+';\n');
+    await aw.close();
+    const mf=await musicDir.getFileHandle('把真的爱你.mp3放在这里.txt',{create:true});
+    const mw=await mf.createWritable();
+    await mw.write('把《真的爱你》的 mp3 放进本文件夹，文件名保持：真的爱你.mp3\n网页打开时会自动播放它（不会用合成音）。\n');
+    await mw.close();
+    const sf=await dir.getFileHandle('说明.txt',{create:true});
+    const sw=await sf.createWritable();
+    const bgmInfo=musicList.length?('music 文件夹里有：'+musicList.join('、')):'music 文件夹里还没有音频（网页保持安静，不会用合成音）';
+    await sw.write('妈妈生日快乐 - 本地网站\n================================\n\n文件结构：\n  index.html    主网页（双击打开）\n  videos/       所有视频\n  photos/       所有照片\n  music/        音乐（放 真的爱你.mp3）\n  说明.txt      本文件\n\n本次写入 '+counter+' 个新媒体文件。\n音乐：'+bgmInfo+'\n\n使用方法：\n1. 双击 index.html 打开\n2. 整个文件夹可拷贝到任何设备（手机/电脑）\n3. 双击 启动手机访问.bat，手机连同一 WiFi 即可浏览\n\n更新时间：'+new Date().toLocaleString('zh-CN')+'\n');
+    await sw.close();
+    return counter;
+  });
+}
+$('exportFolderBtn').addEventListener('click',()=>{
+  saveToSite().then(n=>{if(n!==null)toast('✅ 已更新网站文件夹（index.html + videos + photos + music）。要更新到网上：双击「生成在线版.bat」重新生成再上传')})
+    .catch(e=>{console.error(e);if(e&&e.name==='AbortError')toast('已取消');else toast('保存失败：'+(e.message||e))});
+});
+$('bindSiteBtn').addEventListener('click',()=>{
+  ensureDir(true).then(h=>{if(h)toast('✅ 已绑定：'+boundDirName)})
+    .catch(e=>{if(!(e&&e.name==='AbortError'))toast('选择失败：'+(e.message||e))});
+});
+
+/* ==================== 启动 ==================== */
+addEventListener('resize',resize);
+resize();
+running=false;
+updatePaperWheel();
+applyFinalCfg();
+requestAnimationFrame(loop);
+initBGM().then(()=>preloadAllResources());
+console.log('[生日页面] 初始化完成');
+})();
+</script>
+</body>
+</html>
